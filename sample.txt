@@ -1,0 +1,21 @@
+State: Entry
+Welcome to my starter game. We will parse everything until a `State` or `On` entry and make it part of the caption.
+
+On ["Hello", "Hi", "Yo"]: (transition Exit)
+On ["My name is {name}"]: (store name) (print "Nice to meet you, {name}")
+On *: (print "This isn't how you play") (transition Entry)
+
+State: Exit
+You figured me out!
+
+On *: (end)
+
+state:
+	tag: value
+	description: value
+	conditions:
+		on:
+			(
+				input:value
+				set:
+					[input:value]
