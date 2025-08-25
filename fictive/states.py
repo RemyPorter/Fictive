@@ -132,7 +132,7 @@ class Machine:
         # check substates
         if curr.sub():
             sub_trans = curr.sub().step(inp, state_bag)
-        for t in self._internal._global_transitions + self._internal._transitions[self._current]:
+        for t in self._internal._transitions[self._current] + self._internal._global_transitions:
             transed = t.condition(curr, inp, state_bag)
             if transed:
                 try:
