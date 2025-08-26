@@ -6,11 +6,11 @@ from .states import State, Machine
 from re import Pattern, compile, IGNORECASE
 from typing import Dict, List, Callable
 
-Statebag = Dict[str, str]
+Statebag = Dict[str, str|int]
 Matcher = Callable[[State, str, Statebag], bool]
 
 
-def set_key(key: str, value: str):
+def set_key(key: str, value: str|int):
     """
     Set a key in our statebag. Mostly used in on_enter or on_exit events.
     """
@@ -19,7 +19,7 @@ def set_key(key: str, value: str):
         return True
     return _m
 
-def _key_as_int(key:str, statebag:Statebag):
+def key_as_int(key:str, statebag:Statebag):
     try:
         return int(statebag[key])
     except:
@@ -31,7 +31,8 @@ def inc(key: str):
     as zero.
     """
     def _m(current: State, inp: str, statebag: Statebag) -> bool:
-        statebag[key] = _key_as_int(key, statebag) + 1
+        statebag[key] = key_as_int(key, statebag) + 1
+        return True
     return _m
 
 def dec(key: str):
@@ -40,11 +41,12 @@ def dec(key: str):
     as zero.
     """
     def _m(current: State, inp: str, statebag: Statebag) -> bool:
-        statebag[key] = _key_as_int(key, statebag) - 1
+        statebag[key] = key_as_int(key, statebag) - 1
+        return True
     return _m
 
 
-def on_match(matcher: Pattern | str, keys: List[str] = None):
+def on_match(matcher: Pattern | str, keys: List[str]|None = None):
     """
     An on_match condition. Usually checked against input as part of a
     transition. Supports regexes. Precompiles the regex and captures it.
@@ -54,7 +56,7 @@ def on_match(matcher: Pattern | str, keys: List[str] = None):
     else:
         patt = matcher
 
-    def _m(current: State, inp: str, statebag: Dict[str, str]):
+    def _m(current: State, inp: str, statebag: Statebag):
         matched = patt.fullmatch(inp)
         if not matched:
             return False
@@ -68,54 +70,54 @@ def on_match(matcher: Pattern | str, keys: List[str] = None):
     return _m
 
 
-def on_key(key: str, value: str):
+def on_key(key: str, value: str|int):
     """
     Transition condition that checks a key in our statebag. Only supports equality checks.
     """
-    def _m(current: State, inp: str, statebag: Dict[str, str]):
+    def _m(current: State, inp: str, statebag: Statebag):
         return key in statebag and statebag[key] == value
     return _m
 
-def on_key_gt(key: str, value: str):
+def on_key_gt(key: str, value: str|int):
     """
     Transition condition that checks a key in our statebag. If it converts to int
     it uses a numeric comparison. Otherwise it's a textual comparison.
     """
-    def _m(current: State, inp: str, statebag: Dict[str, str]):
+    def _m(current: State, inp: str, statebag: Statebag):
         if not key in statebag:
             return False
         try:
             v = int(statebag[key])
             return v > int(value)
         except:
-            return statebag[key] > value
+            return str(statebag[key]) > str(value)
     return _m
 
-def on_key_lt(key: str, value: str):
+def on_key_lt(key: str, value: str|int):
     """
     Transition condition that checks a key in our statebag. If it converts to int
     it uses a numeric comparison. Otherwise it's a textual comparison.
     """
-    def _m(current: State, inp: str, statebag: Dict[str, str]):
+    def _m(current: State, inp: str, statebag: Statebag):
         if not key in statebag:
             return False
         try:
             v = int(statebag[key])
             return v < int(value)
         except:
-            return statebag[key] < value
+            return str(statebag[key]) < str(value)
     return _m
 
 def always():
     """
     Transition condition which always is true.
     """
-    def _m(current: State, inp: str, statebag: Dict[str, str]):
+    def _m(current: State, inp: str, statebag: Statebag):
         return True
     return _m
 
 
-def on_all(*fs: List[Matcher]):
+def on_all(*fs: Matcher):
     """
     Composite condition; only transition if ALL the subfunctions are true.
     """
@@ -124,7 +126,7 @@ def on_all(*fs: List[Matcher]):
     return _m
 
 
-def on_any(*fs: List[Matcher]):
+def on_any(*fs: Matcher):
     """
     Composite condition; only transition if ANY of the subfunctions are true.
     """

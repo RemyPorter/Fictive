@@ -8,12 +8,14 @@ Also: I'm sure what the world truly needs is a new engine for making text advent
 Parses a YAML file into a state machine. Then provides an interactive prompt where users provide textual input, which gets evaluated and causes the state machine to transition to new states. 
 
 ## Setup
-Install the requirements.txt and do all the python environment stuff you do. Someday, I'll modify this to support UV or whatever. The only dependency is `pyyaml`, and the goal is to keep it that way.
+This uses `uv`, so you should be able to do a `uv sync` to get up and running.
 
 ## Running
-`python -m fictive <path to file>`
+`uv run python -m fictive <path to file>`
 
 The supplied `game.yaml` represents a simple example game with a handful of states to navigate through. It uses substates, the statebag, and basically demos the core things you can do with Fictive.
+
+You can also run the unit tests: `uv run python -m unittest fictive.tests`. The unit tests are currently quite incomplete.
 
 ## Why YAML?
 Look, the worst feature of YAML is its incredibly complex way of handling links. But for something like this, being able to define things in one place, and then link to those definitions? REALLY COOL. Really useful.

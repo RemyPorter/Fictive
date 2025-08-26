@@ -1,2 +1,6 @@
 __pycache__
 .vscode
+dist/
+fictive.egg-info
+uv.lock
+.DS_Store

@@ -24,7 +24,7 @@ state_text = statify(state_text, state_bag)
 
 margined_print(state_text, args.width)
 while(True):
-    t,s = game.step(input("> "), state_bag)
+    t,s = game.step(input("> ").strip(), state_bag)
     state_text = statify(str(s), state_bag)
     margined_print(state_text, args.width)
     if t == Machine.Result.End:

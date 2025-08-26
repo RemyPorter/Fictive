@@ -1,11 +1,16 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple, TypeAlias, Optional
 from enum import Enum
 
-Statebag = Dict[str, str]
-StateCallback = Callable[[str, Statebag], None]
+Statebag = Dict[str, str]|None
+StateCallback = Callable[["State", str, Statebag], None]
+OptionalStateCallback:TypeAlias = StateCallback|None
 TransitionCallback = Callable[["State", str, Statebag], bool]
+OptionalTransitionCallback = TransitionCallback|None
+Mach=Optional["Machine"]
 
+def null_state_callback(_state:"State", _inp:str,_bag:Statebag)->None:
+    pass
 
 class State:
     """
@@ -20,17 +25,17 @@ class State:
     theoretically nest substate machines as much as you like. Practically, that would be
     very difficult to write effectively.
     """
-    def __init__(self, description: str, on_enter: StateCallback = None,
-                 on_exit: StateCallback = None, sub_machine: "Machine" = None):
+    def __init__(self, description: str, on_enter: OptionalStateCallback = None,
+                 on_exit: OptionalStateCallback = None, sub_machine: Mach = None):
         self._descr = description
         if on_enter:
-            self._on_enter = on_enter
+            self._on_enter:StateCallback = on_enter
         else:
-            self._on_enter = lambda inp, bag: None
+            self._on_enter = null_state_callback
         if on_exit:
-            self._on_exit = on_exit
+            self._on_exit:StateCallback = on_exit
         else:
-            self._on_exit = lambda inp, bag: None
+            self._on_exit = null_state_callback
         self._sub = sub_machine
 
     def sub(self):
@@ -49,45 +54,9 @@ class Transition:
     """
     Holder for a transition. Where wo go from, where we go to,  when we go.
     """
-    orig: State
+    orig: State|None
     dest: State
     condition: TransitionCallback
-
-
-class state:
-    """
-    This is a convenience builder-pattern object I used during testing.
-
-    I believe this code is deceased now.
-    """
-    def __init__(self, tag: str):
-        self._tag = tag
-        self._descr = ""
-        self._buildable = False
-        self._on_enter = lambda s, i, b: True
-        self._on_exit = lambda s, i, b: True
-        self._sub_m = None
-
-    def description(self, description: str):
-        self._descr = description
-        self._buildable = True
-        return self
-
-    def on_enter(self, on_enter: StateCallback):
-        self._on_enter = on_enter
-        return self
-
-    def on_exit(self, on_exit: StateCallback):
-        self._on_exit = on_exit
-        return self
-
-    def sub_machine(self, sub: "Machine"):
-        self._sub_m = sub
-        return self
-
-    def state(self):
-        return self._tag, State(self._descr, self._on_enter, self._on_exit, self._sub_m)
-
 
 class MachineDesc:
     """
@@ -168,7 +137,7 @@ class Machine:
     def current(self) -> State:
         return self._internal[self._current]
 
-    def step(self, inp: str, state_bag: Dict[str, str] = None) -> Tuple[Result, State]:
+    def step(self, inp: str, state_bag: Statebag = None) -> Tuple[Result, State]:
         """
         This function represents the main game loop, and this is the bit which needs the 
         most work.
@@ -206,7 +175,7 @@ class Machine:
                     curr._on_exit(curr, inp, state_bag)
                     t.dest._on_enter(curr, inp, state_bag)
                 except Machine.RejectWithMessage as ex:
-                    print(ex.msg)
+                    print(ex._msg)
                     return (Machine.Result.Rejected, return_state)
                 except Machine.EnterAndRevert:
                     return_state = t.dest
