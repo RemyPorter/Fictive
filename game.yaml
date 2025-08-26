@@ -30,35 +30,65 @@
         description: >
             There is a switch here. It is in the off position.
         on_enter:
-            set_key:
+            - set_key:
                 key: switch
                 value: off
+            - inc:
+                key: switch_count
     - state: &switch_on
         tag: switch_on
         description: >
             The switch is on. You hear a faint humming sound.
         on_enter:
-            set_key:
+            - set_key:
                 key: switch
                 value: on
+            - inc:
+                key: switch_count
+    - state: &switch_broken
+        tag: switch_broken
+        description: >
+            You've broken the switch. It will never work again. You may be trapped here.
+        on_enter:
+            - set_key:
+                key: switch
+                value: off
+    - switch_matcher: &switch_matcher
+        matcher: switch|toggle|flip|turn on|use switch
     - machine: &switched
         startTag: switch_off
         states:
+            - *switch_broken
             - *switch_off
             - *switch_on
         transitions:
             - transition:
                 from: switch_off
+                to: switch_broken
+                condition:
+                    - on_match: *switch_matcher
+                    - on_gt:
+                       key: switch_count
+                       value: 5
+            - transition:
+                from: switch_on
+                to: switch_broken
+                condition:
+                    - on_match: *switch_matcher
+                    - on_gt:
+                       key: switch_count
+                       value: 5
+            - transition:
+                from: switch_off
                 to: switch_on
                 condition:
-                    on_match:
-                        matcher: switch|toggle|flip|turn on|use switch
+                    on_match: *switch_matcher
+                        
             - transition:
                 from: switch_on
                 to: switch_off
                 condition:
-                    on_match:
-                        matcher: switch|toggle|flip|turn off
+                    on_match: *switch_matcher
 - main_machine:
     - entry_commands: &entry_cmd
         matcher: (go|leave|next|get out|move on)
@@ -146,3 +176,4 @@
 - execute: *main
 - state_bag:
     switch: off
+    switch_count: 0

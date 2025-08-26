@@ -86,6 +86,18 @@ condition:
 This transitions if the state bag contains a key that equals that value.
 
 ```yaml
+condition:
+    - on_gt:
+        key: keyName
+        value: value
+    - on_lt:
+        key: otherKeyName
+        value: otherValue
+```
+
+The `on_gt` and `on_lt` functions permit a transition when a greater than/less than comparison passes. Should be used with the `inc`/`dec` functions. Attempts to do a numeric comprarison first, but failing that does a textual comparison. The key should exist, or this will fail.
+
+```yaml
 condition: always
 ```
 
@@ -123,6 +135,17 @@ on_enter:
 ```
 
 This sets a key (which can then be checked by the `on_key` transition function).
+
+```yaml
+on_enter:
+    inc:
+        key: keyName
+on_exit:
+    dec:
+        key: keyName
+```
+
+The `inc` and `dec` functions will increment or decrement a counter. You should initialize the counter as part of your statebag.
 
 Much like transition functions, event functions can also be combined, so a single `on_enter` or `on_exit` event can have multiple entries, e.g.:
 

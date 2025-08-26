@@ -14,7 +14,11 @@ TRIGGER_MAP = {
     "on_key": on_key,
     "on_all": on_all,
     "on_any": on_any,
-    "revert": do_enter_revert
+    "revert": do_enter_revert,
+    "on_gt": on_key_gt,
+    "on_lt": on_key_lt,
+    "inc": inc,
+    "dec": dec
 }
 
 

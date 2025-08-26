@@ -19,6 +19,30 @@ def set_key(key: str, value: str):
         return True
     return _m
 
+def _key_as_int(key:str, statebag:Statebag):
+    try:
+        return int(statebag[key])
+    except:
+        return 0
+
+def inc(key: str):
+    """
+    Increment a key. If the current value is not an integer, it will be treated
+    as zero.
+    """
+    def _m(current: State, inp: str, statebag: Statebag) -> bool:
+        statebag[key] = _key_as_int(key, statebag) + 1
+    return _m
+
+def dec(key: str):
+    """
+    Decrement a key. If the current value is not an integer, it will be treated
+    as zero.
+    """
+    def _m(current: State, inp: str, statebag: Statebag) -> bool:
+        statebag[key] = _key_as_int(key, statebag) - 1
+    return _m
+
 
 def on_match(matcher: Pattern | str, keys: List[str] = None):
     """
@@ -52,6 +76,35 @@ def on_key(key: str, value: str):
         return key in statebag and statebag[key] == value
     return _m
 
+def on_key_gt(key: str, value: str):
+    """
+    Transition condition that checks a key in our statebag. If it converts to int
+    it uses a numeric comparison. Otherwise it's a textual comparison.
+    """
+    def _m(current: State, inp: str, statebag: Dict[str, str]):
+        if not key in statebag:
+            return False
+        try:
+            v = int(statebag[key])
+            return v > int(value)
+        except:
+            return statebag[key] > value
+    return _m
+
+def on_key_lt(key: str, value: str):
+    """
+    Transition condition that checks a key in our statebag. If it converts to int
+    it uses a numeric comparison. Otherwise it's a textual comparison.
+    """
+    def _m(current: State, inp: str, statebag: Dict[str, str]):
+        if not key in statebag:
+            return False
+        try:
+            v = int(statebag[key])
+            return v < int(value)
+        except:
+            return statebag[key] < value
+    return _m
 
 def always():
     """
