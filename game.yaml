@@ -1,6 +1,6 @@
 - switch_machine:
     - power_check: &power_check
-        matcher: (is power on|power on|switch status)
+        matcher: (is power on|power on|switch status|power|check power)
     - state: &switch_is_on
         tag: switch_is_on
         description: You remember turning the switch on.
@@ -52,7 +52,7 @@
                 to: switch_on
                 condition:
                     on_match:
-                        matcher: switch|toggle|flip|turn on
+                        matcher: switch|toggle|flip|turn on|use switch
             - transition:
                 from: switch_on
                 to: switch_off

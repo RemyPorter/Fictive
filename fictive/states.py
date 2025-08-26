@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Tuple
 from enum import Enum
 
 Statebag = Dict[str, str]
@@ -8,6 +8,18 @@ TransitionCallback = Callable[["State", str, Statebag], bool]
 
 
 class State:
+    """
+    One state in our game's state machine. This is the key object we have in the system.
+    The goal of the game is for the player no navigate through states by issuing commands.
+
+    A state must have a description, which is the text we will display to the user.
+
+    A state may have an `on_enter` and `on_exit` event function.
+
+    A state may also have a `sub_machine`, a state machine of substates. You can
+    theoretically nest substate machines as much as you like. Practically, that would be
+    very difficult to write effectively.
+    """
     def __init__(self, description: str, on_enter: StateCallback = None,
                  on_exit: StateCallback = None, sub_machine: "Machine" = None):
         self._descr = description
@@ -34,12 +46,20 @@ class State:
 
 @dataclass
 class Transition:
+    """
+    Holder for a transition. Where wo go from, where we go to,  when we go.
+    """
     orig: State
     dest: State
     condition: TransitionCallback
 
 
 class state:
+    """
+    This is a convenience builder-pattern object I used during testing.
+
+    I believe this code is deceased now.
+    """
     def __init__(self, tag: str):
         self._tag = tag
         self._descr = ""
@@ -70,6 +90,15 @@ class state:
 
 
 class MachineDesc:
+    """
+    The static description of a machine. 
+
+    It contains:
+        * a list of states organized by tags
+            * a reverse lookup to go from a state to its tag
+        * a collection of transitions, organized by tag
+        * a collection of global transitions, which are always active
+    """
     def __init__(self):
         self._states: Dict[str, State] = {"": State("")}
         self._rstates: Dict[State, str] = {}
@@ -77,18 +106,29 @@ class MachineDesc:
         self._global_transitions: List[Transition] = []
 
     def add_state(self, tag: str, s: State):
+        """
+        Add a state to this machine
+        """
         self._states[tag] = s
         self._rstates[s] = tag
         self._transitions[tag] = []
         return self
 
     def link(self, tagOrigin: str, tagDest: str, cbk: TransitionCallback):
+        """
+        Create a link between two states. Note we use the tags of the states,
+        not the state objects themselves. This is more user friendly for our
+        fiction developers.
+        """
         o = self._states[tagOrigin]
         d = self._states[tagDest]
         self._transitions[tagOrigin].append(Transition(o, d, cbk))
         return self
 
     def global_link(self, tagDest: str, cbk: TransitionCallback):
+        """
+        Create a global state transition. 
+        """
         o = None
         d = self._states[tagDest]
         self._global_transitions.append(Transition(o, d, cbk))
@@ -99,11 +139,15 @@ class MachineDesc:
 
 
 class Machine:
+    """
+    The actual executing state machine. Manages the iteration across all our states.
+    """
     class Result(Enum):
         NoChange = 0
         Transitioned = 1
         Rejected = 2
         End = 3
+        Transient = 4
 
     class RejectWithMessage(Exception):
         def __init__(self, msg: str):
@@ -124,14 +168,37 @@ class Machine:
     def current(self) -> State:
         return self._internal[self._current]
 
-    def step(self, inp: str, state_bag: Dict[str, str] = None) -> Result:
+    def step(self, inp: str, state_bag: Dict[str, str] = None) -> Tuple[Result, State]:
+        """
+        This function represents the main game loop, and this is the bit which needs the 
+        most work.
+
+        Given a user-supplied input and a state_bag, it checks all active state transitions
+        for our current state, all its substates, and any global transitions. If a substate
+        transition happens, we still allow a state transition to happen, meaning two 
+        transitions could happen on the same input. However, if a state transition happens,
+        a global transition WILL NOT.
+
+        This is a choice- substate transitions often will alter the statebag, which means
+        there are valid reasons why a developer might have a substate transition and a state
+        transition consume the same input. Global transitions, on the other hand, are meant
+        to be more transient. The idea here is you might check inventory, ask for help, or 
+        something like that. So global transitions *usually* just `revert` back to the original
+        state.
+
+        TODO: a useful feature here would be a special `pop` transition, which allows us to 
+        go back to a previous state. Especially useful for global transitions, which move us to
+        states without respecting the state machine. On exiting a global transition, we may want to
+        pop. Currently, the best way to do that is to revert.
+        """
         if state_bag is None:
             state_bag = {}
         curr = self.current()
+        return_state = curr
         sub_trans = Machine.Result.NoChange
         # check substates
         if curr.sub():
-            sub_trans = curr.sub().step(inp, state_bag)
+            sub_trans, _ = curr.sub().step(inp, state_bag)
         for t in self._internal._transitions[self._current] + self._internal._global_transitions:
             transed = t.condition(curr, inp, state_bag)
             if transed:
@@ -140,16 +207,17 @@ class Machine:
                     t.dest._on_enter(curr, inp, state_bag)
                 except Machine.RejectWithMessage as ex:
                     print(ex.msg)
-                    return Machine.Result.Rejected
+                    return (Machine.Result.Rejected, return_state)
                 except Machine.EnterAndRevert:
-                    print(t.dest, "\n")
-                    return Machine.Result.NoChange
+                    return_state = t.dest
+                    t.dest._on_exit(curr, inp, state_bag)
+                    return (Machine.Result.Transient,return_state) 
                 except:
-                    return Machine.Result.Rejected
+                    return (Machine.Result.Rejected, return_state)
                 next_s = t.dest
                 next_t = self._internal._rstates[next_s]
                 self._current = next_t
                 if next_s == self._end:
-                    return Machine.Result.End
-                return Machine.Result.Transitioned
-        return sub_trans
+                    return (Machine.Result.End, self._end)
+                return (Machine.Result.Transitioned, next_s)
+        return (sub_trans, return_state)
