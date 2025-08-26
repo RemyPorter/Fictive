@@ -3,11 +3,15 @@
         matcher: (is power on|power on|switch status|power|check power)
     - state: &switch_is_on
         tag: switch_is_on
-        description: You remember turning the switch on.
+        description: > 
+            You remember turning the switch on.
+            You've flipped it {switch_count} times.
         on_enter: revert
     - state: &switch_is_off
         tag: switch_is_off
-        description: You think the switch is off.
+        description: >
+            You think the switch is off.
+            You've flipped it {switch_count} times.
         on_enter: revert
     - transition: &to_check_on
         from: ""

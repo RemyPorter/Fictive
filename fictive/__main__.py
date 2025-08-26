@@ -1,6 +1,6 @@
 from .parser import *
 from .states import Machine
-from .print_helper import margined_print
+from .print_helper import margined_print, statify
 
 import argparse
 from pathlib import Path
@@ -19,10 +19,14 @@ with open(Path(args.filename).resolve()) as f:
     loaded = load_yaml(f)
 game,state_bag = parse(loaded)
 
-margined_print(str(game.current()), args.width)
+state_text = str(game.current())
+state_text = statify(state_text, state_bag)
+
+margined_print(state_text, args.width)
 while(True):
     t,s = game.step(input("> "), state_bag)
-    margined_print(str(s), args.width)
+    state_text = statify(str(s), state_bag)
+    margined_print(state_text, args.width)
     if t == Machine.Result.End:
         print("Game Over!")
         break

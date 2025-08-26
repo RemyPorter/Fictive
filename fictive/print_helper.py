@@ -1,3 +1,6 @@
+import re
+from .states import Statebag
+
 def print_line(line:str, w:int=80):
     """
     Print a line, automatically breaking at the space nearest to
@@ -29,3 +32,14 @@ def margined_print(text:str, w:int=80):
     lines = text.split("\n")
     for l in lines:
         print_line(l, w)
+
+LABEL=re.compile(r"\{(.+?)\}")
+
+def statify(text:str, statebag:Statebag):
+    match = LABEL.search(text)
+    while(match):
+        to_replace = text[match.span()[0]:match.span()[1]]
+        replace_with = statebag[match.groups()[0]]
+        text = text.replace(to_replace, str(replace_with))
+        match = LABEL.search(text)
+    return text
