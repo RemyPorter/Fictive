@@ -1,4 +1,6 @@
 from .triggers import *
+from .parser import *
+from .states import Machine
 import unittest
 
 class TriggerTests(unittest.TestCase):
@@ -59,3 +61,44 @@ class TriggerTests(unittest.TestCase):
         self.assertFalse(on_key_lt("str", 2)(None, "", d))
         self.assertFalse(on_key_lt("nokey", 6)(None, "", d))
         self.assertTrue(on_key_lt("int", 7)(None, "", d))
+
+class ParserTests(unittest.TestCase):
+    def test_no_param_function(self):
+        f = "revert"
+        res = parse_function(f)
+        with self.assertRaises(Machine.EnterAndRevert):
+            res(None, "", {})
+
+    def test_param_function(self):
+        f = {
+            "inc": {
+                "key": "foo"
+            }
+        }
+        d:Statebag = {"foo": "5"}
+        res = parse_function(f)
+        res(None, "", d)
+        self.assertEqual(d["foo"], 6)
+
+    def test_parse_single_trigger(self):
+        f = {
+            "on_enter": "revert"
+        }
+        res = parse_trigger("on_enter", f)
+        with self.assertRaises(Machine.EnterAndRevert):
+            res(None, "", {})
+
+    def test_parse_multi_trigger(self):
+        f = {
+            "on_enter": [
+                {"inc": {
+                    "key": "foo"
+                }},
+                "revert"
+            ]
+        }
+        res = parse_trigger("on_enter", f)
+        d:Statebag = {"foo": "5"}
+        with self.assertRaises(Machine.EnterAndRevert):
+            res(None, "", d)
+        self.assertEqual(d["foo"], 6)
