@@ -1,1 +1,2 @@
-- true_name: Arguthaxil
+- true_name: &true_name
+    Arguthaxil 

@@ -23,6 +23,9 @@
             - set_key:
                 key: merciful
                 value: true
+            - set_key:
+                key: torture_ended
+                value: true
     - state: &soul_tortured_once
         tag: soul_tortured_once
         description: >
@@ -74,6 +77,10 @@
         tag: soul_tortured_stop
         description: >
             You've had enough torture for today. You should go somewhere else.
+        on_enter:
+            - set_key:
+                key: torture_ended
+                value: true
     - torture_matcher: &torture_cmd
         matcher: (torture|use.*)
     - transition: &start_to_weapon
@@ -163,6 +170,9 @@
             - on_gt:
                 key: cruelty
                 value: 1
+            - on_key:
+                key: game_over
+                value: false
     - machine: &machine_torture_chamber
         startTag: torture_start
         states:
