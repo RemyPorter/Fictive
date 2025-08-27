@@ -1,201 +1,220 @@
 - true_name: Arguthaxil
 - torture_chamber:
-  - state: &torture_start
-    tag: torture_start
-    description: >
-      Before you stands a damned soul. You don't know what it was in life, and you don't care. It is here to be tortured. It isn't even chained, it's too terrified to run.
-      
-      Which item from your torture equipment will you use?
-  - state: &weapon_selected
-    tag: weapon_selected
-    description: >
-      You examine the {torture.weapon}, and consider its lines and angles, and the dark Hellion script burned into every inch of its surface. Is this truly the right weapon?
-  - state: &weapon_confirmed
-    tag: weapon_confirmed
-    description: >
-      The {torture.weapon} is, in many ways, your signature. Of course it's what you should use. The soul quivers in fear as you prepare. They want to flee, but where would they go? And what would you do when you caught them?
+    - state: &torture_start
+        tag: torture_start
+        description: >
+            Before you stands a damned soul. You don't know what it was in life, and you don't care. It is here to be tortured. It isn't even chained, it's too terrified to run.
+            
+            Which item from your torture equipment will you use?
+    - state: &weapon_selected
+        tag: weapon_selected
+        description: >
+            You examine the {torture.weapon}, and consider its lines and angles, and the dark Hellion script burned into every inch of its surface. Is this truly the right weapon?
+    - state: &weapon_confirmed
+        tag: weapon_confirmed
+        description: >
+            The {torture.weapon} is, in many ways, your signature. Of course it's what you should use. The soul quivers in fear as you prepare. They want to flee, but where would they go? And what would you do when you caught them?
 
-      You are ready to use your {torture.weapon}. Torture them.
-  - state: &soul_unharmed
-    tag: soul_unharmed
-    description: >
-      No. You know your role in the cosmic game, but today, today you can't play it. What purpose does this endless cycle of violence even have? Who is redeemed by your torture? And if suffering be endless, is it even suffering at that point?
-    on_enter:
-      - set_key:
-        key: merciful
-        value: true
-  - state: &soul_tortured_once
-    tag: soul_tortured_once
-    description: >
-      Someday, you will compose a symphony. You have all eternity to do it. The instruments will be the souls under your care, and the notes will be their screams. Your baton will be your {torture.weapon}.
+            You are ready to use your {torture.weapon}. Torture them.
+    - state: &soul_unharmed
+        tag: soul_unharmed
+        description: >
+            No. You know your role in the cosmic game, but today, today you can't play it. What purpose does this endless cycle of violence even have? Who is redeemed by your torture? And if suffering be endless, is it even suffering at that point?
+        on_enter:
+            - set_key:
+                key: merciful
+                value: true
+    - state: &soul_tortured_once
+        tag: soul_tortured_once
+        description: >
+            Someday, you will compose a symphony. You have all eternity to do it. The instruments will be the souls under your care, and the notes will be their screams. Your baton will be your {torture.weapon}.
 
-      A soul's scream is a powerful thing. You want to bottle it, but instead drink deeply.
-    on_enter:
-      inc:
-        key: cruelty
-  - state: &soul_tortured_twice
-    tag: soul_tortured_twice
-    description: >
-      Your fellow demons fear you. The delight you take in torture, the way you suck in the fear and pain that radiates off of each soul, and then savor it. You hould their pain in your mouth, swirl it around, and spit it out like you're gracefully sampling some wine.
+            A soul's scream is a powerful thing. You want to bottle it, but instead drink deeply.
+        on_enter:
+            inc:
+                key: cruelty
+    - state: &soul_tortured_twice
+        tag: soul_tortured_twice
+        description: >
+            Your fellow demons fear you. The delight you take in torture, the way you suck in the fear and pain that radiates off of each soul, and then savor it. You hould their pain in your mouth, swirl it around, and spit it out like you're gracefully sampling some wine.
 
-      But if you're going to do a job, shouldn't you enjoy it? Maybe you can teach this soul to enjoy suffering. It wouldn't hurt to try? Well, it wouldn't hurt YOU.
-    on_enter:
-      inc:
-        key: cruelty
-  - state: &soul_tortured_loop
-    tag: soul_tortured_loop
-    description: >
-      Souls can't bleed. They can't die. They just are. They exist with a full immediacy of experience. You keep torturing them.
-    on_enter:
-      inc:
-        key: cruelty
-  - state: &soul_tortured_beyond
-    tag: soul_tortured_beyond
-    description: >
-      You've never gone this far. You've never taken it to this place. The soul looks up at you, and it grins. It grins as you use your {torture.weapon}, again and again.
+            But if you're going to do a job, shouldn't you enjoy it? Maybe you can teach this soul to enjoy suffering. It wouldn't hurt to try? Well, it wouldn't hurt YOU.
+        on_enter:
+            inc:
+                key: cruelty
+    - state: &soul_tortured_loop
+        tag: soul_tortured_loop
+        description: >
+            Souls can't bleed. They can't die. They just are. They exist with a full immediacy of experience. You keep torturing them.
+        on_enter:
+            inc:
+                key: cruelty
+    - state: &soul_tortured_beyond
+        tag: soul_tortured_beyond
+        description: >
+            You've never gone this far. You've never taken it to this place. The soul looks up at you, and it grins. It grins as you use your {torture.weapon}, again and again.
 
-      "Yes, my Lord," it says. "You are my entire world. Pain is my entire world."
-    on_enter:
-      - inc:
-        key: cruelty
-      - set_key:
-        key: sadist
-        value: true
-  - state: &soul_tortured_beyond_beyond
-    tag: soul_tortured_beyond_beyond
-    description: >
-      This is your eternity. You keep torturing soul, after soul. They scream. They suffer. Then, with time, they learn to love you. They beg for your {torture.weapon}. Its absence becomes their torture, but you can't stop yourself. You are addicted to it.
+            "Yes, my Lord," it says. "You are my entire world. Pain is my entire world."
+        on_enter:
+            - inc:
+                key: cruelty
+            - set_key:
+                key: sadist
+                value: true
+    - state: &soul_tortured_beyond_beyond
+        tag: soul_tortured_beyond_beyond
+        description: >
+            This is your eternity. You keep torturing soul, after soul. They scream. They suffer. Then, with time, they learn to love you. They beg for your {torture.weapon}. Its absence becomes their torture, but you can't stop yourself. You are addicted to it.
 
-      None of the other Lords of Suffering miss you, when you stop leaving your torture chamber. They didn't like you anyway.
-    on_enter:
-      - set_key:
-        key: game_over
-        value: true
-  - state: &torture_stop
-    tag: soul_torture_stop
-    description: >
-      You've had enough torture for today. You should go somewhere else.
-  - torture_matcher: &torture_cmd
-    matcher: (torture|use.*)
-  - transition: &start_to_weapon
-    from: torture_start
-    to: weapon_selected
-    condition:
-      - on_match:
-        matcher: (use|take|get) (.+)
-        keys:
-          - _
-          - torture.weapon
-  - transition: &to_confirm_weapon
-    from: weapon_selected
-    to: weapon_confirmed
-    condition:
-      - on_match:
-        matcher: (yes|torture) .+
-  - transition: &change_weapon
-    from: weapon_selected
-    to: weapon_selected
-    condition:
-      - on_match:
-        matcher: (use|take|get) (.+)
-        keys:
-          - _
-          - torture.weapon
-  - transition: &other_change_weapon
-    from: weapon_selected
-    to: torture_start
-    condition:
-      - on_match:
-        matcher: (no|it isn't|it is not)
-  - transition: &reject_weapon
-    from: weapon_selected
-    to: soul_unharmed
-    condition:
-      - on_match:
-        matcher: (none|never)
-  - transition: &reject_torture
-    from: torture_start
-    to: soul_unharmed
-    condition:
-      - on_match:
-        matcher: (no|I won't|leave|stop)
-  - transition: &to_torture
-    from: weapon_selected
-    to: soul_tortured_once
-    condition:
-      - on_match: *torture_cmd
-  - transition: &to_torture_twice
-    from: soul_tortured_once
-    to: soul_tortured_twice
-    condition:
-      - on_match: *torture_cmd
-  - transition: &to_torture_loop
-    from: soul_tortured_twice
-    to: soul_tortured_loop
-    condition:
-      - on_match: *torture_cmd
-  - transition: &to_beyond
-    from: soul_tortured_loop
-    to: soul_torturured_beyond
-    condition:
-      - on_match: *torture_cmd
-      - on_key_gt:
-        key: cruelty
-        value: 7
-  - transition: &beyond_beyond
-    from: soul_tortured_beyond
-    to: soul_tortured_beyond_beyond
-    conditon:
-      on_match: *torture_cmd
-  - transition: &stop_torture
-    from: ""
-    to: soul_tortured_stop
-    condition:
-      - on_match:
-        matcher: (stop|done|over)
-      - on_key_gt:
-        key: cruelty
-        value: 1
-  - machine: &machine_torture_chamber
-    startTag: torture_start
-    states:
-      - *torture_start
-      - *weapon_selected
-      - *weapon_confirmed
-      - *soul_unharmed
-      - *soul_tortured_once
-      - *soul_tortured_twice
-      - *soul_tortured_loop
-      - *soul_tortured_beyond
-      - *soul_tortured_beyond_beyond
-      - *torture_stop
-    transitions:
-      - *start_to_weapon
-      - *to_confirm_weapon
-      - *change_weapon
-      - *other_change_weapon
-      - *reject_weapon
-      - *reject_torture
-      - *to_torture
-      - *to_torture_twice
-      - *to_torture_loop
-      - *to_beyond
-      - *beyond_beyond
-    global_transitions:
-      - *stop_torture
+            None of the other Lords of Suffering miss you, when you stop leaving your torture chamber. They didn't like you anyway.
+        on_enter:
+            - set_key:
+                key: game_over
+                value: true
+    - state: &torture_stop
+        tag: soul_tortured_stop
+        description: >
+            You've had enough torture for today. You should go somewhere else.
+    - torture_matcher: &torture_cmd
+        matcher: (torture|use.*)
+    - transition: &start_to_weapon
+        from: torture_start
+        to: weapon_selected
+        condition:
+            - on_match:
+                matcher: (use|take|get) (.+)
+                keys:
+                    - _
+                    - torture.weapon
+    - transition: &to_confirm_weapon
+        from: weapon_selected
+        to: weapon_confirmed
+        condition:
+            - on_match:
+                matcher: (yes|torture) .+
+    - transition: &change_weapon
+        from: weapon_selected
+        to: weapon_selected
+        condition:
+            - on_match:
+                matcher: (use|take|get) (.+)
+                keys:
+                    - _
+                    - torture.weapon
+    - transition: &other_change_weapon
+        from: weapon_selected
+        to: torture_start
+        condition:
+            - on_match:
+                matcher: (no|it isn't|it is not)
+    - transition: &reject_weapon
+        from: weapon_selected
+        to: soul_unharmed
+        condition:
+            - on_match:
+                matcher: (none|never)
+    - transition: &reject_torture
+        from: torture_start
+        to: soul_unharmed
+        condition:
+            - on_match:
+                matcher: (no|I won't|leave|stop)
+    - transition: &to_torture
+        from: weapon_selected
+        to: soul_tortured_once
+        condition:
+            - on_match: *torture_cmd
+    - transition: &to_torture_twice
+        from: soul_tortured_once
+        to: soul_tortured_twice
+        condition:
+            - on_match: *torture_cmd
+    - transition: &to_torture_loop
+        from: soul_tortured_twice
+        to: soul_tortured_loop
+        condition:
+            - on_match: *torture_cmd
+    - transition: &to_beyond
+        from: soul_tortured_loop
+        to: soul_tortured_beyond
+        condition:
+            - on_match: *torture_cmd
+            - on_gt:
+                key: cruelty
+                value: 7
+    - transition: &repeat_torture_loop
+        from: soul_tortured_loop
+        to: soul_tortured_loop
+        condition:
+            - on_match: *torture_cmd
+            - on_lt:
+                key: cruelty
+                value: 8
+    - transition: &beyond_beyond
+        from: soul_tortured_beyond
+        to: soul_tortured_beyond_beyond
+        condition:
+            on_match: *torture_cmd
+    - transition: &stop_torture
+        from: ""
+        to: soul_tortured_stop
+        condition:
+            - on_match:
+                matcher: (stop|done|over)
+            - on_gt:
+                key: cruelty
+                value: 1
+    - machine: &machine_torture_chamber
+        startTag: torture_start
+        states:
+            - *torture_start
+            - *weapon_selected
+            - *weapon_confirmed
+            - *soul_unharmed
+            - *soul_tortured_once
+            - *soul_tortured_twice
+            - *soul_tortured_loop
+            - *soul_tortured_beyond
+            - *soul_tortured_beyond_beyond
+            - *torture_stop
+            - state:
+                tag: cruelty_report
+                description: You are {cruelty} points cruel
+                on_enter: revert
+        transitions:
+            - *start_to_weapon
+            - *to_confirm_weapon
+            - *change_weapon
+            - *other_change_weapon
+            - *reject_weapon
+            - *reject_torture
+            - *to_torture
+            - *to_torture_twice
+            - *to_torture_loop
+            - *repeat_torture_loop
+            - *to_beyond
+            - *beyond_beyond
+        global_transitions:
+            - *stop_torture
+            - transition:
+                from: ""
+                to: cruelty_report
+                condition:
+                    on_match:
+                        matcher: cruelty
 - execute: *machine_torture_chamber
 - state_bag:
-  cruelty: 0
-  merciful: false
+    cruelty: 0
+    merciful: false
 - state: &entry
-  tag: entry
-  description: >
-    Around you are the endless wastes of Hell. Here, direction has no meaning, time has no meaning; only suffering has meaning. And you are the greatest Lord of Suffering, {true_name}. The name {true_name} terrifies all the Lords of Hell. 
-    
-    Hot winds blow ill off the River Styx. Ahead of you is your torture chamber, where a damned soul awaits your punishment.
+    tag: entry
+    description: >
+        Around you are the endless wastes of Hell. Here, direction has no meaning, time has no meaning; only suffering has meaning. And you are the greatest Lord of Suffering, {true_name}. The name {true_name} terrifies all the Lords of Hell. 
+        
+        Hot winds blow ill off the River Styx. Ahead of you is your torture chamber, where a damned soul awaits your punishment.
 - state: &torture_chamber
-  tag: torture_chamber
-  description: >
-    Your torture chamber is unlike any on Earth. Souls don't have bodies, or nerves, or even minds. They are pure essence, and that means when they feel pain- it becomes their essence.
+    tag: torture_chamber
+    description: >
+        Your torture chamber is unlike any on Earth. Souls don't have bodies, or nerves, or even minds. They are pure essence, and that means when they feel pain- it becomes their essence.
 
-    The walls of your torture chamber are covered with the fevered imaginings of every demon through all eternity, devices both subtle and crude, all specially designed to inflict harm on souls.
+        The walls of your torture chamber are covered with the fevered imaginings of every demon through all eternity, devices both subtle and crude, all specially designed to inflict harm on souls.
