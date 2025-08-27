@@ -121,7 +121,10 @@ def parse_machine(entry: dict):
     else:
         global_trans = []
     for s in state_entries:
-        parsed = parse_state(s)
+        if "state" in s:
+            parsed = parse_state(s["state"])
+        else:
+            parsed = parse_state(s)
         desc.add_state(*parsed)
     for t in transitions:
         if "transition" in t:
