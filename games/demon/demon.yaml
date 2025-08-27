@@ -3,10 +3,40 @@
     description: >
         Around you are the endless wastes of Hell. Here, direction has no meaning, time has no meaning; only suffering has meaning. And you are the greatest Lord of Suffering, {true_name}. The name {true_name} terrifies all the Lords of Hell. 
         
-        Hot winds blow ill off the River Styx. Ahead of you is your torture chamber, where a damned soul awaits your punishment.
+        Hot winds blow ill off the River Styx. Ahead of you is your torture chamber, where a damned soul awaits your punishment. You must go forward.
 - state: &torture_chamber
     tag: torture_chamber
     description: >
         Your torture chamber is unlike any on Earth. Souls don't have bodies, or nerves, or even minds. They are pure essence, and that means when they feel pain- it becomes their essence.
 
         The walls of your torture chamber are covered with the fevered imaginings of every demon through all eternity, devices both subtle and crude, all specially designed to inflict harm on souls.
+    sub_machine: *machine_torture_chamber
+- state: &torture_exit
+    tag: torture_exit
+    description: >
+        You leave the soul behind you, whimpering, and wondering what its next phase of eternity will look like.
+
+        You step out of your lair, and look up at the bruise-colored skies of Hell. You hear something…
+- transition: &enter_the_chamber
+    from: entry
+    to: torture_chamber
+    condition: always
+- transition: &exit_the_chamber
+    from: torture_chamber
+    to: torture_exit
+    condition:
+        - on_match:
+            matcher: (leave|exit|done|stop)
+        - on_key:
+            key: torture_ended
+            value: true
+- core_machine:
+    machine: &main
+        startTag: entry
+        states:
+            - *entry
+            - *torture_chamber
+            - *torture_exit
+        transitions:
+            - *enter_the_chamber
+            - *exit_the_chamber
