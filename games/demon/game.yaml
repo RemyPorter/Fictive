@@ -1,0 +1,4 @@
+- execute: *machine_torture_chamber
+- state_bag:
+    cruelty: 0
+    merciful: false

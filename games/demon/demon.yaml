@@ -1,0 +1,12 @@
+- state: &entry
+    tag: entry
+    description: >
+        Around you are the endless wastes of Hell. Here, direction has no meaning, time has no meaning; only suffering has meaning. And you are the greatest Lord of Suffering, {true_name}. The name {true_name} terrifies all the Lords of Hell. 
+        
+        Hot winds blow ill off the River Styx. Ahead of you is your torture chamber, where a damned soul awaits your punishment.
+- state: &torture_chamber
+    tag: torture_chamber
+    description: >
+        Your torture chamber is unlike any on Earth. Souls don't have bodies, or nerves, or even minds. They are pure essence, and that means when they feel pain- it becomes their essence.
+
+        The walls of your torture chamber are covered with the fevered imaginings of every demon through all eternity, devices both subtle and crude, all specially designed to inflict harm on souls.
