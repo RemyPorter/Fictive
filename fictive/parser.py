@@ -1,8 +1,7 @@
 """
-Read in a YAML file, and convert it into a state machine we can interact with.
+Convert a dict (from YAML) into a state machine we can interact with.
 """
 
-import yaml
 import io
 from fictive.states import *
 from fictive.triggers import *
@@ -20,14 +19,6 @@ TRIGGER_MAP = {
     "inc": inc,
     "dec": dec
 }
-
-
-def load_yaml(f: io.TextIOWrapper):
-    """
-    Read the YAML file
-    TODO: read a folder full of YAML files to assemble the whole thing
-    """
-    return yaml.load(f, yaml.Loader)
 
 
 def parse_function(entry):

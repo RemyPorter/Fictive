@@ -1,0 +1,83 @@
+- main_machine:
+    - entry_commands: &entry_cmd
+        matcher: (go|leave|next|get out|move on)
+    - middle_commands: &mid_cmd
+        matcher: (go back|back|return|entry)
+    - state: &entry
+        tag: entry
+        description: >
+            You are in a mysterious room.
+            It's hard to say what's so mysterious about it.
+            That is what's so mysterious.
+        sub_machine: *switched
+    - state: &midoff
+        tag: middle_off
+        description: >
+            In this room, there is a large archway. You can easily walk through it, but nothing happens.
+            Large cables run to the archway. It seems to need power.
+    - state: &midon
+        tag: middle_on
+        description: >
+            The cables hum with the power coursing through them. The archway crackles, 
+            its energy forming a hazy portal within it.
+    - state: &end
+        tag: exit
+        description: >
+            You have stepped through the archway. Every atom in your body is disassembled
+            and reassembled. You are dead. You live on. Are you the same person? You do not know.
+            You have exited the maze.
+    - machine: &main
+        startTag: entry
+        endTag: exit
+        states:
+            - *entry
+            - *midoff
+            - *midon
+            - *end
+            - *switch_is_off
+            - *switch_is_on
+        transitions:
+            - transition:
+                from: entry
+                to: middle_off
+                condition:
+                    - on_match: *entry_cmd
+                    - on_key:
+                        key: switch
+                        value: off
+            - transition:
+                from: middle_off
+                to: entry
+                condition:
+                    on_match: *mid_cmd
+            - transition:
+                from: middle_off
+                to: switch_is_off
+                condition:
+                    on_match: *power_check
+            - transition:
+                from: entry
+                to: middle_on
+                condition:
+                    - on_match: *entry_cmd
+                    - on_key:
+                        key: switch
+                        value: on
+            - transition:
+                from: middle_on
+                to: entry
+                condition:
+                    on_match: *mid_cmd
+            - transition:
+                from: middle_on
+                to: switch_is_on
+                condition:
+                    on_match: *power_check
+            - transition:
+                from: middle_on
+                to: exit
+                condition:
+                    - on_match: *entry_cmd
+        global_transitions:
+            - *to_check_off
+            - *to_check_on

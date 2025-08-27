@@ -5,15 +5,15 @@ A state-machine based interactive fiction tool. Still in an early draft state, n
 Also: I'm sure what the world truly needs is a new engine for making text adventures that is more stripped down and limited than previous engines.
 
 ## Current Status
-Parses a YAML file into a state machine. Then provides an interactive prompt where users provide textual input, which gets evaluated and causes the state machine to transition to new states. 
+Parses a collection of YAML files into a state machine. Then provides an interactive prompt where users provide textual input, which gets evaluated and causes the state machine to transition to new states. 
 
 ## Setup
 This uses `uv`, so you should be able to do a `uv sync` to get up and running.
 
 ## Running
-`uv run python -m fictive <path to file>`
+`uv run python -m fictive <path to game folder>`
 
-The supplied `game.yaml` represents a simple example game with a handful of states to navigate through. It uses substates, the statebag, and basically demos the core things you can do with Fictive.
+The supplied `example` folder represents a simple example game with a handful of states to navigate through. It uses substates, the statebag, and basically demos the core things you can do with Fictive.
 
 You can also run the unit tests: `uv run python -m unittest fictive.tests`. The unit tests are currently quite incomplete.
 
@@ -22,13 +22,25 @@ Look, the worst feature of YAML is its incredibly complex way of handling links.
 
 
 # The Fictive YAML Syntax
-A Fictive YAML file MUST be a YAML array. When designing a YAML game, there are a few key concepts.
+A Fictive YAML file MUST be a YAML array. Before we get into the details, there are two core ways to organize your YAML.
+
+## File Structure
+### The Single File Approach
+You can build your entire game into a single YAML file. As these files will tend to get long, it may not be the easiest or cleanest way to do it, but it's certainly a good way to get started.
+
+### The Directory Approach
+To make it easier to modularize your game, you can also use a directory. Inside this directory, you will have multiple files which describe your game, and you **must** have a `manifest.yaml`. This file must be an array, and each entry contains the relative path to those files. The order you place the files in the manifest matters, as the game will be loaded in that sequence.
+
+## Making Fictive Games
+
+When designing a YAML game, there are a few key concepts.
 
 The first is the state machine. This is the various things that can happen in the game. States don't have a direct mapping to anything concrete- they're not rooms or pages or scenes. They're best thought of as important points in the fiction, where the story can branch.
 
 The second is the state bag. The state bag is a collection of key/value pairs that can be modified as the game progresses. This can be used to represent things which don't map neatly to a state machine, like a character's inventory, or whether they flipped a switch earlier in the game. It's an arbitrary set of global variables, essentially.
 
 Finally, the game loop is important. States only transition in reaction to user input. The loop goes thus:
+
 * We output the description of the current state and substates
 * The user types a command and hits enter
 * We check to see if that input causes a transition to a new state
