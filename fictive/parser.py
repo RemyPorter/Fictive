@@ -17,7 +17,8 @@ TRIGGER_MAP = {
     "on_gt": on_key_gt,
     "on_lt": on_key_lt,
     "inc": inc,
-    "dec": dec
+    "dec": dec,
+    "always": always
 }
 
 
