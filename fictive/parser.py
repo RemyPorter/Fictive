@@ -18,6 +18,8 @@ TRIGGER_MAP:Dict[str,Callable] = {
     "revert": do_enter_revert,
     "on_gt": on_key_gt,
     "on_lt": on_key_lt,
+    "on_lte": on_key_lte,
+    "on_gte": on_key_gte,
     "inc": inc,
     "dec": dec,
     "always": always,

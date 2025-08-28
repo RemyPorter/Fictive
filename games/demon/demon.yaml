@@ -1,26 +1,26 @@
 - state: &entry
     tag: entry
-    description: >
-        Around you are the endless wastes of Hell. Here, direction has no meaning, time has no meaning; only suffering has meaning. And you are the greatest Lord of Suffering, {true_name}. The name {true_name} terrifies all the Lords of Hell. 
+    description: |
+        You stand upon a blasted plain outside of your private tower, which marks the farthest corner of Hell. It is the Black Tower {tower_name}, and it is the final stop for the mortal souls tortured in Hell. Souls are brought here for you to do what you will with them, for you are {true_name}, the most feared and powerful Lord of Suffering. Only the Lightbringer dare give you commands, and He is too wise to word them as anything but requests.
         
-        Hot winds blow ill off the River Styx. Ahead of you is your torture chamber, where a damned soul awaits your punishment. You must go forward.
-- state: &torture_chamber
-    tag: torture_chamber
-    description: >
-        Your torture chamber is unlike any on Earth. Souls don't have bodies, or nerves, or even minds. They are pure essence, and that means when they feel pain- it becomes their essence.
-
-        The walls of your torture chamber are covered with the fevered imaginings of every demon through all eternity, devices both subtle and crude, all specially designed to inflict harm on souls.
-    sub_machine: *machine_torture_chamber
-- state: &torture_exit
-    tag: torture_exit
-    description: >
-        You leave the soul behind you, whimpering, and wondering what its next phase of eternity will look like.
-
-        You step out of your lair, and look up at the bruise-colored skies of Hell. You hear something…
+        Hot winds blow in from the River Styx. Sulfrous and rich, redolent with the spilled essense of lesser souls tortured by lesser Lords. Inside your tower, there is a new soul, a vile, sinful being, brought to you for punishments.
+    on_enter:
+        - banner: The Wasteland Outside of {tower_name}
 - transition: &enter_the_chamber
     from: entry
     to: torture_chamber
     condition: always
+- state: &torture_chamber
+    tag: torture_chamber
+    description: |
+        Souls do not have bodies; they are nothing but pure essense. But the weapons and implements of torture hung along the walls of your torture chamber are themselves imbued with the purest essense of pain.
+
+        The floor of the stone chamber glows faintly, the spilled essense of endless souls that you have tended to.
+
+        Chained to the floor in front of you is the glowing orb of yet another soul. This one is gravid with sins; not petty little sins like lies or even murder, but with horrors that echo your own work. You feel a kinship with this soul; a monster recognizes a monster.
+    sub_machine: *machine_torture_chamber
+    on_enter:
+        - banner: "{tower_name} Torture Chamber"
 - transition: &exit_the_chamber
     from: torture_chamber
     to: torture_exit
@@ -30,6 +30,41 @@
         - on_key:
             key: torture_ended
             value: true
+- state: &torture_exit
+    tag: torture_exit
+    description: |
+        The soul whimpers as you leave. Its light deflates in your absence. You climb the black stone steps of your tower, a spiral staircase. Each step is emblazoned with one symbol in Hellion, the language of Demons. As you climb, you spell out an incantation.
+
+        What do you spell?
+    on_enter:
+        - banner: "The Tower {tower_name}"
+- transition: &to_climbing
+    from: torture_exit
+    to: climbing_the_tower
+    condition:
+        - on_match:
+            matcher: (.*)
+            keys: tower.spell
+- state: &climbing_the_tower
+    tag: climbing_the_tower
+    description: |
+        With each step, you summon the unholy powers of oblivion to your command. The stones vibrate with with the power. By the time you reach roof of the tower, the entire tower hums with energy. The mountains in the far distance also shake, in sympathy with the spell you're casting.
+
+        You step out onto the roof, and release your spell:
+
+        *{tower.spell}*
+- transition: &to_the_top_of_the_world
+    from: climbing_the_tower
+    to: atop_the_world
+    condition: always
+- state: &atop_the_world
+    tag: atop_the_world
+    description: |
+        The mystical energy pours out of your tower, through you, and into the cosmos. Even the Lightbringer can't help but notice what you've done. Perhaps even *He* will notice.
+
+        No, that's probably too much to ask.
+
+        Wait, no, there's something happening…
 - core_machine:
     machine: &main
         startTag: entry
@@ -37,6 +72,10 @@
             - *entry
             - *torture_chamber
             - *torture_exit
+            - *climbing_the_tower
+            - *atop_the_world
         transitions:
             - *enter_the_chamber
             - *exit_the_chamber
+            - *to_climbing
+            - *to_the_top_of_the_world

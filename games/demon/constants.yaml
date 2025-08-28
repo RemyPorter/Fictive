@@ -1,2 +1,6 @@
 - true_name: &true_name
     Arguthaxil 
+- tower_name: &tower_name
+    Murathix
+- max_cruelty: &max_cruelty
+    7

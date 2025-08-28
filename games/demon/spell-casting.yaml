@@ -1,0 +1,14 @@
+- state: &spell_gone_wrong
+  tag: spell_gone_wrong
+  description: |
+    The power is flowing wrong. This isn't your spell. Someone else is casting a spell, and sapping the energy of yours.
+
+    Your mind races. Which of the other Lords of Suffering could do this? Who *would*?
+
+    Do you resist? Or feed more power into it?
+- transition: &to_spell_resist
+  from: spell_gone_wrong
+  to: spell_resist
+- state: &spell_resist
+  tag: spell_resisted
+  

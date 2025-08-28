@@ -4,3 +4,4 @@
     merciful: false
     game_over: false
     true_name: *true_name
+    tower_name: *tower_name

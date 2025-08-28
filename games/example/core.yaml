@@ -22,14 +22,14 @@
             In this room, there is a large archway. You can easily walk through it, but nothing happens.
             Large cables run to the archway. It seems to need power.
         on_enter: 
-            *set_title_archway
+            - *set_title_archway
     - state: &midon
         tag: middle_on
         description: >
             The cables hum with the power *coursing* through them. The archway crackles, 
             its energy forming a hazy portal within it.
         on_enter: 
-            *set_title_archway
+            - *set_title_archway
     - state: &end
         tag: exit
         description: >
