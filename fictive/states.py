@@ -41,12 +41,24 @@ class State:
     def sub(self):
         return self._sub
 
+    def description(self):
+        return self._descr
+
     def __str__(self):
         res = self._descr
         if self._sub and self._sub.current():
             res += "\n"
             res += str(self._sub.current())
         return res
+
+    def substates(self):
+        if not self._sub:
+            return []
+        res = [self._sub.current().description()]
+        res += self._sub.current().substates()
+        return res
+
+
 
 
 @dataclass
@@ -117,6 +129,7 @@ class Machine:
         Rejected = 2
         End = 3
         Transient = 4
+        Error = 5
 
     class RejectWithMessage(Exception):
         def __init__(self, msg: str):
@@ -128,6 +141,14 @@ class Machine:
     class EnterAndRevert(Exception):
         pass
 
+    @dataclass
+    class StepResult:
+        action: "Machine.Result"
+        state: State
+        transient: State|None
+        additionalMessages: str|None = None
+
+
     def __init__(self, mach: MachineDesc, startTag: str, endTag: str = ""):
         self._internal = mach
         self._start = mach[startTag]
@@ -137,7 +158,10 @@ class Machine:
     def current(self) -> State:
         return self._internal[self._current]
 
-    def step(self, inp: str, state_bag: Statebag = None) -> Tuple[Result, State]:
+    def start(self, state_bag: Statebag):
+        self.current()._on_enter(self.current(), "", state_bag)
+
+    def step(self, inp: str, state_bag: Statebag = None) -> "Machine.StepResult":
         """
         This function represents the main game loop, and this is the bit which needs the 
         most work.
@@ -163,30 +187,38 @@ class Machine:
         if state_bag is None:
             state_bag = {}
         curr = self.current()
-        return_state = curr
         sub_trans = Machine.Result.NoChange
         # check substates
         if curr.sub():
-            sub_trans, _ = curr.sub().step(inp, state_bag)
+            sub_step = curr.sub().step(inp, state_bag)
+            sub_trans = sub_step.action
         for t in self._internal._transitions[self._current] + self._internal._global_transitions:
             transed = t.condition(curr, inp, state_bag)
             if transed:
+                # try to exit, and if we fail, abort transitions
                 try:
                     curr._on_exit(curr, inp, state_bag)
+                except Exception as ex:
+                    return Machine.StepResult(Machine.Result.Rejected,
+                        curr,
+                        None,
+                        str(ex))
+                # try to enter, any failures fail to transition
+                try:
                     t.dest._on_enter(curr, inp, state_bag)
                 except Machine.RejectWithMessage as ex:
-                    print(ex._msg)
-                    return (Machine.Result.Rejected, return_state)
+                    return Machine.StepResult(Machine.Result.Rejected, \
+                        curr, None, ex._msg)
                 except Machine.EnterAndRevert:
-                    return_state = t.dest
-                    t.dest._on_exit(curr, inp, state_bag)
-                    return (Machine.Result.Transient,return_state) 
-                except:
-                    return (Machine.Result.Rejected, return_state)
+                    return Machine.StepResult(Machine.Result.Transient,\
+                            curr, t.dest) 
+                except Exception as err:
+                    return Machine.StepResult(Machine.Result.Error, \
+                        curr, t.dest, str(err))
                 next_s = t.dest
                 next_t = self._internal._rstates[next_s]
                 self._current = next_t
                 if next_s == self._end:
-                    return (Machine.Result.End, self._end)
-                return (Machine.Result.Transitioned, next_s)
-        return (sub_trans, return_state)
+                    return Machine.StepResult(Machine.Result.End, self._end, None)
+                return Machine.StepResult(Machine.Result.Transitioned, next_s, None)
+        return Machine.StepResult(sub_trans, curr, None)

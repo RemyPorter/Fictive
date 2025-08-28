@@ -143,11 +143,14 @@ def parse(machine_desc: list):
     the game.
     """
     state_bag = {}
+    title = "A Fictive Game"
     for entry in machine_desc:
         if "execute" in entry:
             main_entry = entry["execute"]
             machine = parse_machine(main_entry)
         if "state_bag" in entry:
             state_bag = entry["state_bag"]
+        if "title" in entry:
+            title = entry["title"]
 
-    return machine, state_bag
+    return machine, state_bag, title

@@ -29,7 +29,15 @@ A Fictive YAML file MUST be a YAML array. Before we get into the details, there 
 You can build your entire game into a single YAML file. As these files will tend to get long, it may not be the easiest or cleanest way to do it, but it's certainly a good way to get started.
 
 ### The Directory Approach
-To make it easier to modularize your game, you can also use a directory. Inside this directory, you will have multiple files which describe your game, and you **must** have a `manifest.yaml`. This file must be an array, and each entry contains the relative path to those files. The order you place the files in the manifest matters, as the game will be loaded in that sequence.
+To make it easier to modularize your game, you can also use a directory. Inside this directory, you will have multiple files which describe your game, and you **must** have a `manifest.yaml`. The manifest should have the following structure:
+
+```yaml
+title: The Title of Your Game
+slug: A short, one line description of your game
+files: # an array of relative paths from your manifest
+    - one.yaml
+    - two.yaml
+```
 
 ## Making Fictive Games
 

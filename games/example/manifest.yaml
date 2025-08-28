@@ -1,0 +1,6 @@
+title: Example
+slug: An example game, illustrating Fictive's features
+files:
+  - switch.yaml
+  - core.yaml
+  - game.yaml

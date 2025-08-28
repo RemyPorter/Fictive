@@ -1,0 +1,24 @@
+DisplayWrapper {
+	border: solid $foreground-muted;
+}
+
+DisplayWrapper.active {
+	display: block;
+}
+
+DisplayWrapper.inactive {
+	display: none;
+}
+
+#State {
+	height: 3fr;
+}
+
+#Substate {
+	height: 2fr;
+}
+
+
+#Transient {
+	height: 1fr;
+}

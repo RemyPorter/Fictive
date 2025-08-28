@@ -108,6 +108,28 @@ def on_key_lt(key: str, value: str|int):
             return str(statebag[key]) < str(value)
     return _m
 
+def on_key_gte(key: str, value: str|int):
+    def _m(current: State, inp: str, statebag: Statebag):
+        if not key in statebag:
+            return False
+        try:
+            v = int(statebag[key])
+            return v >= int(value)
+        except:
+            return str(statebag[key]) >= str(value)
+    return _m
+
+def on_key_lte(key: str, value: str|int):
+    def _m(current: State, inp: str, statebag: Statebag):
+        if not key in statebag:
+            return False
+        try:
+            v = int(statebag[key])
+            return v <= int(value)
+        except:
+            return str(statebag[key]) <= str(value)
+    return _m
+
 def always():
     """
     Transition condition which always is true.

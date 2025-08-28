@@ -3,6 +3,14 @@
         matcher: (go|leave|next|get out|move on)
     - middle_commands: &mid_cmd
         matcher: (go back|back|return|entry)
+    - mysterious: &set_title_mysterious
+        set_key: 
+            key: state.banner
+            value: The Mysterious Room
+    - archway: &set_title_archway
+        set_key:
+            key: state.banner
+            value: The Archway
     - state: &entry
         tag: entry
         description: >
@@ -10,22 +18,42 @@
             It's hard to say what's so mysterious about it.
             That is what's so mysterious.
         sub_machine: *switched
+        on_enter: 
+            *set_title_mysterious
     - state: &midoff
         tag: middle_off
         description: >
             In this room, there is a large archway. You can easily walk through it, but nothing happens.
             Large cables run to the archway. It seems to need power.
+        on_enter: 
+            *set_title_archway
     - state: &midon
         tag: middle_on
         description: >
-            The cables hum with the power coursing through them. The archway crackles, 
+            The cables hum with the power *coursing* through them. The archway crackles, 
             its energy forming a hazy portal within it.
+        on_enter: 
+            *set_title_archway
     - state: &end
         tag: exit
         description: >
             You have stepped through the archway. Every atom in your body is disassembled
             and reassembled. You are dead. You live on. Are you the same person? You do not know.
             You have exited the maze.
+
+            # The End
+
+            Press enter to exit
+        on_enter:
+            set_key:
+                key: state.banner
+                value: The End of the Story
+    - state: &help
+        tag: help
+        description: >
+            This is a simple text adventure. Try commands like `go`, `back`, `switch`, `check power`,
+            and see what happens.
+        on_enter: revert
     - machine: &main
         startTag: entry
         endTag: exit
@@ -36,6 +64,7 @@
             - *end
             - *switch_is_off
             - *switch_is_on
+            - *help
         transitions:
             - transition:
                 from: entry
@@ -81,3 +110,8 @@
         global_transitions:
             - *to_check_off
             - *to_check_on
+            - transition:
+                to: help
+                condition:
+                    on_match: 
+                        matcher: (help|\?)

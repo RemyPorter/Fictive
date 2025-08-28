@@ -1,5 +1,7 @@
 import re
 from .states import Statebag
+from typing import Iterable
+from textwrap import wrap
 
 def print_line(line:str, w:int=80):
     """
@@ -43,3 +45,18 @@ def statify(text:str, statebag:Statebag):
         text = text.replace(to_replace, str(replace_with))
         match = LABEL.search(text)
     return text
+
+def print_sections(sections:Iterable[str], statebag:Statebag, width:int, separator:str="━"):
+    print("\033c", "")
+    for section in sections:
+        s = statify(section, statebag)
+        margined_print(s, width)
+        print(separator * width)
+
+def wrap_text(text:str, width:int=80)->Iterable[str]:
+    lines = wrap(text, replace_whitespace=False, drop_whitespace=True)
+    res = []
+    for l in lines:
+        s = l.split("\n")
+        res += s
+    return res

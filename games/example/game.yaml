@@ -1,0 +1,7 @@
+- execute: *main
+- state_bag:
+    switch: off
+    switch_count: 0
+    "state.banner": A Mysterious Room
+    "sub.banner": A Mysterious Switch
+- title: An Example Game
