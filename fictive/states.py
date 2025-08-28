@@ -41,12 +41,24 @@ class State:
     def sub(self):
         return self._sub
 
+    def description(self):
+        return self._descr
+
     def __str__(self):
         res = self._descr
         if self._sub and self._sub.current():
             res += "\n"
             res += str(self._sub.current())
         return res
+
+    def substates(self):
+        if not self._sub:
+            return []
+        res = [self._sub.current().description()]
+        res += self._sub.current().substates()
+        return res
+
+
 
 
 @dataclass
