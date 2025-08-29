@@ -1,0 +1,11 @@
+Markdown {
+	border: solid $foreground-muted;
+}
+
+Markdown.active {
+	display: block;
+}
+
+Markdown.inactive {
+	display: none;
+}

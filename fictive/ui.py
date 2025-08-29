@@ -4,6 +4,62 @@ from dataclasses import dataclass
 from .states import Machine, Statebag, State
 from .print_helper import statify, wrap_text
 from textwrap import wrap
+from typing import Tuple
+from textual.app import App, ComposeResult
+from textual.widgets import Footer, Header, Markdown, Input
+from textual.containers import Vertical
+from textual import on
+
+
+class FictiveUI(App):
+    game: Machine = None
+    state_bag: Statebag = None
+    started: bool = False
+
+    CSS_PATH = "fictive.tcss"
+
+    def on_mount(self) -> None:
+        self.update(None, self.game.current())
+        self._started = True
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Vertical(
+            Markdown(id="State", open_links=False),
+            Markdown(id="Substate", open_links=False),
+            Markdown(id="Transients", open_links=False)
+        )
+        yield Input(placeholder="Enter a command")
+        yield Footer()
+
+    def update(self, t: Machine.Result, s: State, transients: State = None):
+        if t == Machine.Result.End:
+            # do something here!
+            pass
+        self.query_exactly_one("#State").update(
+            statify(s.description(), self.state_bag)
+        )
+        subs = self.query_exactly_one("#Substate")
+        trans = self.query_exactly_one("#Transients")
+        if len(s.substates()) > 0:
+            subs.update(statify("\n\n".join(s.substates()), self.state_bag))
+            subs.classes = "active"
+        else:
+            subs.classes = "inactive"
+        if transients:
+            trans.classes = "active"
+        else:
+            trans.classes = "inactive"
+
+        self.query_exactly_one("#Substate").update("\n".join(s.substates()))
+
+    @on(Input.Submitted)
+    def input(self, event: Input.Changed) -> None:
+        inp = event.value
+        t, s = self.game.step(inp, self.state_bag)
+        self.update(t, s)
+        self.query_one(Input).value = ""
+
 
 @dataclass
 class WindowHolder:
@@ -12,78 +68,33 @@ class WindowHolder:
     transients: cu.window
     prompt: cu.window
 
-MAIN_HEIGHT=12
-SUB_HEIGHT=10
-TRANS_HEIGHT=4
-PROMPT_HEIGHT=3
 
-class UI:
-    def __init__(self, width:int=80):
-        self._width = width
-        self._windows = WindowHolder(
-            cu.newwin(MAIN_HEIGHT,width,0,0),
-            cu.newwin(SUB_HEIGHT,width,MAIN_HEIGHT,0),
-            cu.newwin(TRANS_HEIGHT,width,MAIN_HEIGHT+SUB_HEIGHT,0),
-            cu.newwin(PROMPT_HEIGHT,width,MAIN_HEIGHT+SUB_HEIGHT+TRANS_HEIGHT,0)
-        )
-        self._inp = ""
+MAIN_HEIGHT = 12
+SUB_HEIGHT = 10
+TRANS_HEIGHT = 4
+PROMPT_HEIGHT = 3
 
-    def update_state(self, s:State, b:Statebag):
-        ms = self._windows.mainState
-        lines = wrap_text(s.description(), self._width-2)
-        ms.resize(len(lines)+3,self._width)
-        ms.erase()
-        ms.box()
-        if "main.title" in b:
-            ms.addstr(0,1,b["main.title"])
-        for i,line in enumerate(lines):
-            ms.addstr(1+i,1,line)
-        ms.refresh()
 
-    def update_substates(self, s:State, b:Statebag):
-        ss = self._windows.subState
-        subs = s.substates()
-        ss.erase()
-        if len(subs) > 0:
-            joined = "\n".join(subs)
-            wrapped = wrap_text(joined, self._width-2)
-            ss.resize(len(wrapped)+3,self._width)
-            ss.mvwin(self._windows.mainState.getmaxyx()[0], 0)
-            ss.box()
-            if "sub.title" in b:
-                ss.addstr(0,1,b["sub.title"])
-            for i,line in enumerate(wrapped):
-                ss.addstr(1+i,1,line)
-            ss.refresh()
+class TextBox:
+    def __init__(self, parent: cu.window, offset: Tuple[int, int]):
+        y, x = offset
+        self._parent = parent
+        h, w = parent.getmaxyx()
+        self._win = parent.derwin(1, w-5, y, x)
+        self._offset = offset
 
-    def update_transients(self, s:State, b:Statebag):
-        pass
-
-    def read_text(self, pm):
-        key = pm.getkey()
+    def edit(self):
+        pm = self._win
+        pm.move(0, 0)
+        key = pm.get_wch()
         acc = ""
         while key != "\n":
-            acc += key
-            pm.addstr(1, 1, "> " + acc)
-            key = pm.getkey()
+            if ord(key) in (cu.KEY_BACKSPACE, 127, 263) and len(acc) > 0:
+                acc = acc[0:-1]
+            else:
+                acc += key
+            pm.erase()
+            pm.addstr(acc)
+            pm.refresh()
+            key = pm.get_wch()
         return acc
-
-
-    def update_textbox(self):
-        pm = self._windows.prompt
-        y = self._windows.mainState.getmaxyx()[0] + \
-            self._windows.subState.getmaxyx()[0]
-        pm.erase()
-        pm.mvwin(y,0)
-        pm.box()
-        pm.addstr(1, 1, "> ")
-        pm.move(1, 4)
-        pm.refresh()
-        return self.read_text(pm)
-        
-
-    def update(self, s:State, b:Statebag):
-        self.update_state(s, b)
-        self.update_substates(s, b)
-        return self.update_textbox()
-
