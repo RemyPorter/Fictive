@@ -172,6 +172,13 @@ This will enter the new state, print its result, and then immediately revert bac
 
 ```yaml
 on_enter:
+    banner: Main State Title
+```
+
+This changes the caption on the main state pane in the output. There is also a `subbanner` (for the substate pane), and `transbanner` for the transients pane. Also 🏳️‍⚧️ rights.
+
+```yaml
+on_enter:
     set_key:
         key: keyName
         value: value
