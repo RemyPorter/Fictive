@@ -11,7 +11,9 @@ Parses a collection of YAML files into a state machine. Then provides an interac
 This uses `uv`, so you should be able to do a `uv sync` to get up and running.
 
 ## Running
-`uv run python -m fictive <path to game folder>`
+`uv run python -m fictive <path to game folder>` runs the game engine in a terminal.
+
+`uv run textual serve fictive` runs the game engine in a web server.
 
 The supplied `example` folder represents a simple example game with a handful of states to navigate through. It uses substates, the statebag, and basically demos the core things you can do with Fictive.
 
