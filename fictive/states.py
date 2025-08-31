@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Callable, Dict, List, Tuple, TypeAlias, Optional
 from enum import Enum
 
-Statebag = Dict[str, str]|None
+Statebag = Dict[str, str|int]
+OptionalStateBag = Statebag|None
 StateCallback = Callable[["State", str, Statebag], None]
 OptionalStateCallback:TypeAlias = StateCallback|None
 TransitionCallback = Callable[["State", str, Statebag], bool]
@@ -163,7 +164,7 @@ class Machine:
         if self.current().sub():
             self.current().sub().current()._on_enter(self.current(), "", state_bag)
 
-    def step(self, inp: str, state_bag: Statebag = None) -> "Machine.StepResult":
+    def step(self, inp: str, state_bag: Statebag) -> "Machine.StepResult":
         """
         This function represents the main game loop, and this is the bit which needs the 
         most work.
@@ -186,8 +187,6 @@ class Machine:
         states without respecting the state machine. On exiting a global transition, we may want to
         pop. Currently, the best way to do that is to revert.
         """
-        if state_bag is None:
-            state_bag = {}
         curr = self.current()
         sub_trans = Machine.Result.NoChange
         # check substates

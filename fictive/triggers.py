@@ -2,11 +2,10 @@
 These functions all represent helper functions to manage our state machine
 transitions.
 """
-from .states import State, Machine
+from .states import State, Machine, Statebag
 from re import Pattern, compile, IGNORECASE
 from typing import Dict, List, Callable
 
-Statebag = Dict[str, str|int]
 Matcher = Callable[[State, str, Statebag], bool]
 
 

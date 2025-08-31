@@ -6,9 +6,10 @@ import io
 from fictive.states import *
 from fictive.triggers import *
 from functools import partial
+from typing import Dict, Callable
 
 # convert commands in YAML to functions in Python
-TRIGGER_MAP = {
+TRIGGER_MAP:Dict[str,Callable] = {
     "set_key": set_key,
     "on_match": on_match,
     "on_key": on_key,
