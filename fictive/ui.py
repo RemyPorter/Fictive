@@ -196,6 +196,10 @@ class FictiveUI(App):
 
     CSS_PATH = "fictive.tcss"
 
+    def __init__(self, path, *args, **kwargs):
+        self.path = path
+        super().__init__(*args, **kwargs)
+
     def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
         yield from super().get_system_commands(screen)
         if isinstance(screen, GameUI):
@@ -203,7 +207,7 @@ class FictiveUI(App):
 
     def on_mount(self):
         self.title = FictiveUI.TITLE
-        self.install_screen(GamePicker(path="./games"), name="picker")
+        self.install_screen(GamePicker(path=self.path), name="picker")
         self.push_screen("picker")
 
     @on(GameList.GamePicked)

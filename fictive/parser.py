@@ -21,7 +21,8 @@ TRIGGER_MAP = {
     "dec": dec,
     "always": always,
     "banner": partial(set_key, "state.banner"),
-    "subbanner": partial(set_key, "sub.banner")
+    "subbanner": partial(set_key, "sub.banner"),
+    "transbanner": partial(set_key, "trans.banner")
 }
 
 
