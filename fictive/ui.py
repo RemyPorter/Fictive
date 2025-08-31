@@ -13,7 +13,7 @@ from textual.binding import Binding
 from textual.screen import Screen
 from textual.widget import Widget
 from textual.message import Message
-from textual.widgets import Footer, Header, Markdown, Input, Label, ListView, ListItem, DataTable
+from textual.widgets import Footer, Header, Markdown, Input, Label, ListView, ListItem, DataTable, Static
 from textual.containers import Vertical, Container
 from textual import on
 from textual.command import Hit, Hits, Provider
@@ -41,7 +41,6 @@ class GameUI(Screen):
         An event for ending the game
         """
         pass
-    CSS_PATH = "fictive.tcss"
 
     BINDINGS = {
         Binding("ctrl+x", "quit_game", "Quit the Game", show=True)
@@ -169,28 +168,22 @@ class GamePicker(Screen):
     """
     The introduction screen for picking games
     """
-    DEFAULT_CSS = """
-    Markdown { 
-        height: 1fr; 
-        border: solid $foreground-muted
-    }
-    GameList { 
-        height: 2fr; 
-        padding-left: 2;
-        padding-right: 2;
-        align: center top;
-        border: dashed $foreground-muted;
-    }
-    """
     def __init__(self, path, *args, **kwargs):
         self.path = Path(path)
         super().__init__(*args, **kwargs)
 
     def compose(self):
         yield Header()
+        yield Static("""
+ _______ _             _             
+(_______|_)        _  (_)            
+ _____   _  ____ _| |_ _ _   _ _____ 
+|  ___) | |/ ___|_   _) | | | | ___ |
+| |     | ( (___  | |_| |\ V /| ____|
+|_|     |_|\____)  \__)_| \_/ |_____)
+        """, id="banner")
         yield Markdown("""
-# Welcome to Fictive
-## Pick a game you'd like to play.        
+ Pick a game you'd like to play.        
         """)
         yield GameList(self.path)
         yield Footer()
@@ -200,6 +193,8 @@ class FictiveUI(App):
     state_bag:Statebag
 
     TITLE="Fictive Game Player"
+
+    CSS_PATH = "fictive.tcss"
 
     def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
         yield from super().get_system_commands(screen)

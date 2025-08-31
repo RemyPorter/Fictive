@@ -1,7 +1,3 @@
-DisplayWrapper {
-	border: solid $foreground-muted;
-}
-
 DisplayWrapper.active {
 	display: block;
 }
@@ -12,13 +8,34 @@ DisplayWrapper.inactive {
 
 #State {
 	height: 3fr;
+	border: round $text-primary;
 }
 
 #Substate {
 	height: 2fr;
+	border: round $text-secondary;
 }
 
 
 #Transient {
 	height: 1fr;
+	border: round $text-accent;
+}
+
+GamePicker > Markdown { 
+	height: 1fr; 
+	border: round $foreground-muted
+}
+GamePicker > GameList { 
+	height: 6fr; 
+	padding-left: 2;
+	padding-right: 2;
+	align: center top;
+	border: round $foreground-muted
+}
+
+#banner {
+	height: 2fr;
+	align: right middle;
+	padding-left: 5;
 }
