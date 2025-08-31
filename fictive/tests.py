@@ -69,6 +69,10 @@ class ParserTests(unittest.TestCase):
         with self.assertRaises(Machine.EnterAndRevert):
             res(None, "", {})
 
+    def test_one_pararm_function(self):
+        f = {"banner": "test"}
+        res = parse_function(f)
+
     def test_param_function(self):
         f = {
             "inc": {

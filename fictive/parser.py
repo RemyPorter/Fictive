@@ -5,6 +5,7 @@ Convert a dict (from YAML) into a state machine we can interact with.
 import io
 from fictive.states import *
 from fictive.triggers import *
+from functools import partial
 
 # convert commands in YAML to functions in Python
 TRIGGER_MAP = {
@@ -18,7 +19,10 @@ TRIGGER_MAP = {
     "on_lt": on_key_lt,
     "inc": inc,
     "dec": dec,
-    "always": always
+    "always": always,
+    "banner": partial(set_key, "state.banner"),
+    "subbanner": partial(set_key, "sub.banner"),
+    "transbanner": partial(set_key, "trans.banner")
 }
 
 
@@ -41,10 +45,16 @@ def parse_function(entry):
     takes parameters or not. In the former, they're passed as kwargs.
 
     """
-    if (isinstance(entry, dict)):  # this has kwargs parameters
+    if (isinstance(entry, dict)):  # this has parameters
         fname = list(entry.keys())[0]
+        vals = entry[fname]
         f = TRIGGER_MAP[fname]
-        return f(**entry[fname])
+        if isinstance(vals, dict): # kwargs
+            return f(**vals)
+        elif isinstance(vals, list): # list of args
+            return f(*vals)
+        else:
+            return f(vals)
     else:
         fname = entry  # this does not
         f = TRIGGER_MAP[fname]

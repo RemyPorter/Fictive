@@ -25,10 +25,7 @@ Look, the worst feature of YAML is its incredibly complex way of handling links.
 A Fictive YAML file MUST be a YAML array. Before we get into the details, there are two core ways to organize your YAML.
 
 ## File Structure
-### The Single File Approach
-You can build your entire game into a single YAML file. As these files will tend to get long, it may not be the easiest or cleanest way to do it, but it's certainly a good way to get started.
-
-### The Directory Approach
+### The Game Directory
 To make it easier to modularize your game, you can also use a directory. Inside this directory, you will have multiple files which describe your game, and you **must** have a `manifest.yaml`. The manifest should have the following structure:
 
 ```yaml
@@ -86,6 +83,30 @@ When we are on the `from` state, and the condition evaluates to true, the game w
 
 ### Functions
 Functions, broadly, are meant for two purposes. One is to control transitions. The other is to change the state_bag or other flow elements as part of an `on_*` event.
+
+Functions are described in YAML in a few possible ways, depending on whether or not they need parameters.
+
+```yaml
+# no parameter function:
+on_enter: revert # on_enter is the event, revert is the function
+
+# also valid:
+on_enter:
+    - revert
+
+# named parameters:
+condition:
+    on_match: # function name
+        matcher: someMatchCondition # the matcher parameter
+
+# unnamed parameters:
+condition:
+    on_match: someMatchCondition
+# or
+condition:
+    on_match:
+        - someMatchCondition
+```
 
 #### Condition Functions
 The game supports the following condition functions:
@@ -148,6 +169,13 @@ on_enter: revert
 ```
 
 This will enter the new state, print its result, and then immediately revert back to the previous state. This is useful for creating states which represent health screens, or inventory screens, for example.
+
+```yaml
+on_enter:
+    banner: Main State Title
+```
+
+This changes the caption on the main state pane in the output. There is also a `subbanner` (for the substate pane), and `transbanner` for the transients pane. Also 🏳️‍⚧️ rights.
 
 ```yaml
 on_enter:
