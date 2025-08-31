@@ -160,6 +160,8 @@ class Machine:
 
     def start(self, state_bag: Statebag):
         self.current()._on_enter(self.current(), "", state_bag)
+        if self.current().sub():
+            self.current().sub().current()._on_enter(self.current(), "", state_bag)
 
     def step(self, inp: str, state_bag: Statebag = None) -> "Machine.StepResult":
         """

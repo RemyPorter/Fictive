@@ -4,13 +4,9 @@
     - middle_commands: &mid_cmd
         matcher: (go back|back|return|entry)
     - mysterious: &set_title_mysterious
-        set_key: 
-            key: state.banner
-            value: The Mysterious Room
+        banner: The Mysterious Room
     - archway: &set_title_archway
-        set_key:
-            key: state.banner
-            value: The Archway
+        banner: The Archway
     - state: &entry
         tag: entry
         description: >
@@ -45,9 +41,7 @@
 
             Press enter to exit
         on_enter:
-            set_key:
-                key: state.banner
-                value: The End of the Story
+            banner: The End of the Story
     - state: &help
         tag: help
         description: >

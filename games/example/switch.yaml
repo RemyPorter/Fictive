@@ -33,6 +33,7 @@
     description: >
         There is a switch here. It is in the off position.
     on_enter:
+        - subbanner: A Mysterious Switch
         - set_key:
             key: switch
             value: off
