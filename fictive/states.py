@@ -169,11 +169,10 @@ class Machine:
         This function represents the main game loop, and this is the bit which needs the 
         most work.
 
-        Given a user-supplied input and a state_bag, it checks all active state transitions
-        for our current state, all its substates, and any global transitions. If a substate
-        transition happens, we still allow a state transition to happen, meaning two 
-        transitions could happen on the same input. However, if a state transition happens,
-        a global transition WILL NOT.
+        Only one transition will ever trigger. The system will first try:
+        * Substates
+        * The Current State
+        * A Global Transition
 
         This is a choice- substate transitions often will alter the statebag, which means
         there are valid reasons why a developer might have a substate transition and a state
@@ -193,6 +192,8 @@ class Machine:
         if curr.sub():
             sub_step = curr.sub().step(inp, state_bag)
             sub_trans = sub_step.action
+            if sub_trans == Machine.Result.Transitioned:
+                return Machine.StepResult(sub_trans, curr, None)
         for t in self._internal._transitions[self._current] + self._internal._global_transitions:
             transed = t.condition(curr, inp, state_bag)
             if transed:
