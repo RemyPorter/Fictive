@@ -25,14 +25,17 @@
             *set_title_archway
     - state: &midon
         tag: middle_on
-        description: >
+        description: |
             The cables hum with the power *coursing* through them. The archway crackles, 
             its energy forming a hazy portal within it.
+
+            This state contains an error in its description, as it attempts to print out an undefined
+            statebag key: {no_key}
         on_enter: 
             *set_title_archway
     - state: &end
         tag: exit
-        description: >
+        description: |
             You have stepped through the archway. Every atom in your body is disassembled
             and reassembled. You are dead. You live on. Are you the same person? You do not know.
             You have exited the maze.

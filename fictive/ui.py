@@ -1,8 +1,9 @@
 """
 Our UI classes, which lets people actually play the game.
 """
+from enum import StrEnum
 from .states import Machine, Statebag, State
-from .print_helper import statify, wrap_text
+from .print_helper import statify
 from .parser import *
 from .loader import load_game_yaml, load_manifest_yaml
 from textwrap import wrap
@@ -60,6 +61,12 @@ class GameUI(Screen):
         """
         pass
 
+    class Banners(StrEnum):
+        """Helper enum for managing banners"""
+        state = "state"
+        sub = "sub"
+        trans = "trans"
+
     BINDINGS = {
         Binding("ctrl+x", "quit_game", "Quit the Game", show=True)
     }
@@ -107,6 +114,9 @@ class GameUI(Screen):
         yield Input(placeholder="Enter a command…")
         yield Footer()
 
+    def get_banner(self, level: "GameUI.Banners") -> str:
+        return statify(self.state_bag.get(str(level) + ".banner", ""), self.state_bag)
+
     def update(self, t: Machine.Result, s: State, transients: State = None):
         """
         Our core UI loop. Checks what we got out of the state machine, and
@@ -121,29 +131,34 @@ class GameUI(Screen):
         """
         if t == Machine.Result.End:
             self.ended = True
-        state_banner = statify(self.state_bag.get(
-            "state.banner", ""), self.state_bag)
-        subs_banner = statify(self.state_bag.get(
-            "sub.banner", ""), self.state_bag)
-        trans_banner = statify(self.state_bag.get(
-            "trans.banner", ""), self.state_bag)
+        # build the banners
+        state_banner = self.get_banner(GameUI.Banners.state)
+        subs_banner = self.get_banner(GameUI.Banners.sub)
+        trans_banner = self.get_banner(GameUI.Banners.trans)
+
+        # Update the main state box
         self.query_exactly_one("#State").update(
             statify(s.description(), self.state_bag), state_banner
         )
+
+        # update the substate box
         subs = self.query_exactly_one("#Substate")
-        trans = self.query_exactly_one("#Transient")
         if len(s.substates()) > 0:
             subs.update(statify("\n\n".join(s.substates()),
                         self.state_bag), subs_banner)
             subs.classes = "active"
         else:
             subs.classes = "inactive"
+
+        # update the transient state box
+        trans = self.query_exactly_one("#Transient")
         if transients:
             trans.classes = "active"
             trans.update(statify(transients.description(),
                          self.state_bag), trans_banner)
         else:
             trans.classes = "inactive"
+        # update our debugging view
         self.query_exactly_one("#Peek").update()
 
     @on(Input.Submitted)
