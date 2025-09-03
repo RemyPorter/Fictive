@@ -13,10 +13,26 @@ from textual.binding import Binding
 from textual.screen import Screen
 from textual.widget import Widget
 from textual.message import Message
-from textual.widgets import Footer, Header, Markdown, Input, Label, ListView, ListItem, DataTable, Static
-from textual.containers import Vertical, Container
+from textual.widgets import Footer, Header, Markdown, Input, Label, ListView, ListItem, DataTable, Static, Pretty
+from textual.containers import Vertical, Container, Horizontal
 from textual import on
 from textual.command import Hit, Hits, Provider
+
+
+class StatebagPeek(Widget):
+    """
+    Helper to show our statebag, for debugging
+    """
+
+    def __init__(self, state_bag: Statebag, *args, **kwargs):
+        self.state_bag = state_bag
+        super().__init__(*args, **kwargs)
+
+    def compose(self):
+        yield Pretty(self.state_bag)
+
+    def update(self):
+        self.query_exactly_one("Pretty").update(self.state_bag)
 
 
 class DisplayWrapper(Widget):
@@ -24,13 +40,15 @@ class DisplayWrapper(Widget):
     Simple container for our Markdown widget, which will actually
     be what displays game state
     """
+
     def compose(self) -> ComposeResult:
         yield Markdown(open_links=False)
-        
-    def update(self, body:str, title:str|None):
+
+    def update(self, body: str, title: str | None):
         self.border_title = title
         self.query_exactly_one(Markdown).update(body)
         pass
+
 
 class GameUI(Screen):
     """
@@ -58,12 +76,21 @@ class GameUI(Screen):
         """
         self.post_message(GameUI.GameOver())
 
-    def __init__(self, game:Machine, state_bag: Statebag, *args, **kwargs):
+    def __init__(self, game: Machine, state_bag: Statebag, *args, **kwargs):
         self.game = game
         self.state_bag = state_bag
         self.ended = False
+        self._peek = False
         game.start(state_bag)
         super().__init__(*args, **kwargs)
+
+    def show_statebag(self):
+        peeker = self.query_exactly_one("#Peek")
+        if self._peek:
+            peeker.classes = "inactive"
+        else:
+            peeker.classes = "active"
+        self._peek = not self._peek
 
     def on_mount(self) -> None:
         # properly init our view without ticking the game forward
@@ -71,9 +98,12 @@ class GameUI(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield DisplayWrapper(id="State")
-        yield DisplayWrapper(id="Substate")
-        yield DisplayWrapper(id="Transient", classes="inactive")
+        with Horizontal():
+            with Vertical():
+                yield DisplayWrapper(id="State")
+                yield DisplayWrapper(id="Substate")
+                yield DisplayWrapper(id="Transient", classes="inactive")
+            yield StatebagPeek(self.state_bag, id="Peek", classes="inactive")
         yield Input(placeholder="Enter a command…")
         yield Footer()
 
@@ -91,24 +121,30 @@ class GameUI(Screen):
         """
         if t == Machine.Result.End:
             self.ended = True
-        state_banner = statify(self.state_bag.get("state.banner", ""), self.state_bag)
-        subs_banner = statify(self.state_bag.get("sub.banner", ""), self.state_bag)
-        trans_banner = statify(self.state_bag.get("trans.banner", ""), self.state_bag)
+        state_banner = statify(self.state_bag.get(
+            "state.banner", ""), self.state_bag)
+        subs_banner = statify(self.state_bag.get(
+            "sub.banner", ""), self.state_bag)
+        trans_banner = statify(self.state_bag.get(
+            "trans.banner", ""), self.state_bag)
         self.query_exactly_one("#State").update(
             statify(s.description(), self.state_bag), state_banner
         )
         subs = self.query_exactly_one("#Substate")
         trans = self.query_exactly_one("#Transient")
         if len(s.substates()) > 0:
-            subs.update(statify("\n\n".join(s.substates()), self.state_bag), subs_banner)
+            subs.update(statify("\n\n".join(s.substates()),
+                        self.state_bag), subs_banner)
             subs.classes = "active"
         else:
             subs.classes = "inactive"
         if transients:
             trans.classes = "active"
-            trans.update(statify(transients.description(), self.state_bag), trans_banner)
+            trans.update(statify(transients.description(),
+                         self.state_bag), trans_banner)
         else:
             trans.classes = "inactive"
+        self.query_exactly_one("#Peek").update()
 
     @on(Input.Submitted)
     def input(self, event: Input.Changed) -> None:
@@ -124,6 +160,7 @@ class GameUI(Screen):
         self.update(res.action, res.state, res.transient)
         self.query_one(Input).value = ""
 
+
 class GameList(Widget):
     """
     A widget showing all of our games.
@@ -132,11 +169,12 @@ class GameList(Widget):
         """
         Event for when the user has picked a game.
         """
+
         def __init__(self, path):
             self.path = path
             super().__init__()
 
-    games:Iterable[ListItem]=[]
+    games: Iterable[ListItem] = []
 
     def __init__(self, path):
         super().__init__()
@@ -153,21 +191,23 @@ class GameList(Widget):
         dt = self.query_exactly_one(DataTable)
         dt.add_column("Game")
         dt.add_column("Description")
-        for title,slug in self.games:
-            dt.add_row(title,slug)
-        
+        for title, slug in self.games:
+            dt.add_row(title, slug)
+
     def compose(self):
         yield DataTable(zebra_stripes=True, cursor_type="row")
 
     @on(DataTable.RowSelected)
-    def on_selected(self, item:DataTable.RowSelected):
+    def on_selected(self, item: DataTable.RowSelected):
         idx = item.cursor_row
         self.post_message(GameList.GamePicked(self.paths[idx]))
+
 
 class GamePicker(Screen):
     """
     The introduction screen for picking games
     """
+
     def __init__(self, path, *args, **kwargs):
         self.path = Path(path)
         super().__init__(*args, **kwargs)
@@ -188,22 +228,27 @@ class GamePicker(Screen):
         yield GameList(self.path)
         yield Footer()
 
-class FictiveUI(App):
-    game:Machine
-    state_bag:Statebag
 
-    TITLE="Fictive Game Player"
+class FictiveUI(App):
+    game: Machine
+    state_bag: Statebag
+
+    TITLE = "Fictive Game Player"
 
     CSS_PATH = "fictive.tcss"
 
-    def __init__(self, path, *args, **kwargs):
+    def __init__(self, path, *args, debug: bool = False, **kwargs):
         self.path = path
+        self.debug_enabled = debug
+
         super().__init__(*args, **kwargs)
 
     def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
         yield from super().get_system_commands(screen)
         if isinstance(screen, GameUI):
             yield SystemCommand("Exit Game", "Return to the main menu", screen.quit_game)
+            if self.debug_enabled:
+                yield SystemCommand("Peek Statebag", "Show the statebag", screen.show_statebag)
 
     def on_mount(self):
         self.title = FictiveUI.TITLE
@@ -211,7 +256,7 @@ class FictiveUI(App):
         self.push_screen("picker")
 
     @on(GameList.GamePicked)
-    def on_game_picked(self, picked:GameList.GamePicked):
+    def on_game_picked(self, picked: GameList.GamePicked):
         loaded = load_game_yaml(Path(picked.path))
         game, state_bag, title = parse(loaded)
         gameUI = GameUI(game, state_bag)
@@ -220,7 +265,7 @@ class FictiveUI(App):
         self.title = title
 
     @on(GameUI.GameOver)
-    def on_game_over(self, go:GameUI.GameOver):
+    def on_game_over(self, go: GameUI.GameOver):
         self.pop_screen()
         self.uninstall_screen("running_game")
         self.title = FictiveUI.TITLE

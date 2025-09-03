@@ -1,9 +1,15 @@
-DisplayWrapper.active {
+.active {
 	display: block;
 }
 
-DisplayWrapper.inactive {
+.inactive {
 	display: none;
+}
+
+#Peek {
+	border: round $foreground-muted;
+	height: 100%;
+	width: 30%;
 }
 
 #State {
