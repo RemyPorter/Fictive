@@ -44,7 +44,7 @@
     condition:
         - on_match:
             matcher: (.*)
-            keys: tower.spell
+            keys: [tower.spell]
 - state: &climbing_the_tower
     tag: climbing_the_tower
     description: |
@@ -65,6 +65,130 @@
         No, that's probably too much to ask.
 
         Wait, no, there's something happening…
+- transition: &to_gone_wrong
+    from: atop_the_world
+    to: spell_gone_wrong
+    condition: always
+- state: &spell_gone_wrong
+    tag: spell_gone_wrong
+    description: |
+        The power is flowing wrong. This isn't your spell. Someone else is casting a spell, and sapping the energy of yours.
+
+        Your mind races. Which of the other Lords of Suffering could do this? Who *would*?
+
+        Do you resist? Or feed more power into it?
+# so, as a note, there are five actions the Demon can take here:
+# * resist
+# * power
+# * use their cruelty
+# * use their mercy
+- transition: &to_spell_resist
+    from: spell_gone_wrong
+    to: spell_resist
+    condition:
+        on_match: (resist|fight|stall)
+- state: &spell_resist
+    tag: spell_resist
+    description: |
+        You gather your energies, and put up a barrier. You bark insults in Hellion, and the {tower_name} shakes with your fury. That soul must be wondering if this is the end of the world. You briefly wonder if it's the end of you.
+
+        *{tower.spell}*
+
+        It echoes back at you as a lightning bolt.
+
+        And then you hear "{true_name}" coming from inside of you. And that's when you realize… you're being summoned. And the summoner knows your true name…
+
+        *You can't resist*.
+    on_enter:
+        set_key:
+            key: resisted
+            value: true
+# the resist path continues in jake.yaml
+- transition: &to_spell_empower
+    from: spell_gone_wrong
+    to: spell_empower
+    condition:
+        on_match: (empower|use (my )?power|empower the spell|feed|feed power)
+- state: &spell_empower
+    tag: spell_empower
+    description: |
+        No one disrepects you. You growl out the True Name of Hell, spitting it out as a curse, a totem, and most importantly, a summoning. If one of the Lords of Suffering wants to play games with you, you will play to the Death. And when one of the Undying dies, it is truly a thing to see.
+
+        You gather all the mystical forces of Hell to you, channeling them through your tower. Even that pathetic, sinful soul is consumed, a mere spark in the blaze you're lighting.
+
+        "{tower.spell}" you scream into the void. And then a voice screams back at you the same words. A human voice. A *mortal* voice.
+
+        You are being *summoned*!?
+    on_enter:
+        - set_key:
+            key: soul_died
+            value: true
+        - set_key:
+            key: resisted
+            value: true
+- transition: &to_empower_death
+    from: spell_empower
+    to: spell_empower_death
+    condition:
+        on_lt:
+            key: cruelty
+            value: 2
+- state: &spell_empower_death
+    tag: spell_empower_death
+    description: |
+        You've grown soft. Endless centuries of being the biggest, meanest, cruelest Lord of Suffering have made you forget what it truly means to wield power. Power is to control, to force your will onto others. You've not been doing that, not really. And without that, you can't control the power you've summoned.
+
+        You feel the column of energy you've pulled to yourself wobble. Then it is fully out of your control. It's hungry, and it rips through you and to *whoever* it is that's summoning you. The energy makes a quick appetizer of them, ripping souls from flesh, consuming them and becoming yet more powerful as it turns back to you.
+
+        They didn't feel a thing. But you will. For the Undying to die, it takes an eternity. An eternity of angry fire nibbling at your flesh, sucking at your bones, an eternity of suffering beyond any imagination.
+
+        But it's only an instant for everyone else. You're gone before your last scream can be heard.
+    on_enter:
+        set_key:
+            key: game_over
+            value: true
+# the empower path continues in satanists.yaml
+- transition: &to_spell_merciful
+    from: spell_gone_wrong
+    to: spell_merciful
+    condition:
+        - on_match: (be merciful|forgive them|mercy|use mercy)
+        - on_key:
+            key: merciful
+            value: true
+- state: &spell_merciful
+    tag: spell_merciful
+    description: |
+        You are too ancient to fight. Too complete in yourself. What is this? You've cast your spell, someone wants to disrupt it? Fine, let them. You release the energies, let the sand and sweat take them. Your spell wavers like heat on the desert and then vanishes.
+
+        You hear a voice. Distant beyond all distances, it says, "I compel you to my aid, {true_name}."
+
+        It is a human voice, but one that knows your True Name. You must answer the call, if only to find out how they know this.
+# the merciful path continues in thechild.yaml
+- transition: &to_spell_cruelty
+    from: spell_gone_wrong
+    to: spell_cruelty
+    condition:
+        - on_match: (be cruel|hate them|cruelty|use cruelty)
+        - on_gt:
+            key: cruelty
+            value: 4
+- state: &spell_cruelty
+    tag: spell_cruelty
+    description: |
+        You turn this spell around in your fist. You could take control of this situation, wreak your will, and be done with it. Whatever this disruption is, it's barely worth your notice.
+
+        And *that* is why they must suffer.
+
+        But who are they? You reach out your senses down the magical lines of force, and see a face. An ugly, bloated, beastly face. One of the other Lords of Suffering- {enemy_name} the {enemy_epithet}.
+
+        {enemy_name} feels your gaze upon them, and cuts the spell. Their side of the energy dissipates. But not before you get a sense of where they are- a deep pit beneath the city of Pandemonium.
+# the cruelty path continues in norgath.yaml
+- state: &game_over
+    tag: game_over
+    description: |
+        # The End
+        STATS GO HERE
 - core_machine:
     machine: &main
         startTag: entry
@@ -74,8 +198,28 @@
             - *torture_exit
             - *climbing_the_tower
             - *atop_the_world
+            - *spell_gone_wrong
+            - *spell_resist
+            - *spell_empower
+            - *spell_empower_death
+            - *spell_merciful
+            - *spell_cruelty
+            - *game_over
         transitions:
             - *enter_the_chamber
             - *exit_the_chamber
             - *to_climbing
             - *to_the_top_of_the_world
+            - *to_gone_wrong
+            - *to_spell_resist
+            - *to_spell_empower
+            - *to_empower_death
+            - *to_spell_merciful
+            - *to_spell_cruelty
+        global_transitions:
+            - transition:
+                to: game_over
+                condition:
+                    on_key:
+                        key: game_over
+                        value: true

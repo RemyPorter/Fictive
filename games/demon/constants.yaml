@@ -4,3 +4,7 @@
     Murathix
 - max_cruelty: &max_cruelty
     7
+- enemy_name: &enemy_name
+    Norgath
+- enemy_epithet: &enemy_epithet
+    Bloated

@@ -5,3 +5,8 @@
     game_over: false
     true_name: *true_name
     tower_name: *tower_name
+    enemy_name: *enemy_name
+    enemy_epithet: *enemy_epithet
+    soul_died: false
+    resisted: false
+    empowered: false
