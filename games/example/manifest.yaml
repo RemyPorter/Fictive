@@ -1,5 +1,6 @@
 title: An Example Game
 slug: An example game, illustrating Fictive's features
+author: Remy Porter
 files:
   - switch.yaml
   - core.yaml

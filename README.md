@@ -38,6 +38,8 @@ files: # an array of relative paths from your manifest
     - two.yaml
 ```
 
+You may also include an `author` key; this is optional but recommended.
+
 ## Making Fictive Games
 
 When designing a YAML game, there are a few key concepts.

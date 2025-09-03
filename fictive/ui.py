@@ -197,8 +197,8 @@ class GameList(Widget):
         path = Path(path)
         for p in path.iterdir():
             if p.is_dir():
-                title_slug = load_manifest_yaml(p)
-                self.games.append(title_slug)
+                title_slug_author = load_manifest_yaml(p)
+                self.games.append(title_slug_author)
                 self.paths.append(p)
         self.path = path
 
@@ -206,8 +206,9 @@ class GameList(Widget):
         dt = self.query_exactly_one(DataTable)
         dt.add_column("Game")
         dt.add_column("Description")
-        for title, slug in self.games:
-            dt.add_row(title, slug)
+        dt.add_column("Author")
+        for title, slug, author in self.games:
+            dt.add_row(title, slug, author)
 
     def compose(self):
         yield DataTable(zebra_stripes=True, cursor_type="row")

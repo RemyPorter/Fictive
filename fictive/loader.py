@@ -35,4 +35,4 @@ def load_manifest_yaml(gameInstance: Path | str):
     manifest = root / "manifest.yaml"
     with manifest.open() as f:
         loaded = yaml.load(f, yaml.SafeLoader)
-    return loaded.get("title", "A Game"), loaded.get("slug", "Slug for a game")
+    return loaded.get("title", "A Game"), loaded.get("slug", "Slug for a game"), loaded.get("author", "Anonymous")
