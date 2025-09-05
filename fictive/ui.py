@@ -15,7 +15,7 @@ from textual.screen import Screen
 from textual.widget import Widget
 from textual.message import Message
 from textual.widgets import Footer, Header, Markdown, Input, Label, ListView, ListItem, DataTable, Static, Pretty
-from textual.containers import Vertical, Container, Horizontal
+from textual.containers import Vertical, Container, Horizontal, VerticalScroll
 from textual import on
 from textual.command import Hit, Hits, Provider
 
@@ -43,7 +43,8 @@ class DisplayWrapper(Widget):
     """
 
     def compose(self) -> ComposeResult:
-        yield Markdown(open_links=False)
+        with VerticalScroll():
+            yield Markdown()
 
     def update(self, body: str, title: str | None):
         self.border_title = title
@@ -102,6 +103,7 @@ class GameUI(Screen):
     def on_mount(self) -> None:
         # properly init our view without ticking the game forward
         self.update(None, self.game.current())
+        self.focus_next(Input)
 
     def compose(self) -> ComposeResult:
         yield Header()

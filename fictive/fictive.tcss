@@ -13,12 +13,12 @@
 }
 
 #State {
-	height: 3fr;
+	height: 4fr;
 	border: round $text-primary;
 }
 
 #Substate {
-	height: 2fr;
+	height: 3fr;
 	border: round $text-secondary;
 }
 
