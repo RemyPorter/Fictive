@@ -1,0 +1,257 @@
+- state: &starting_start
+    tag: starting_start
+    description: |
+        # Getting Started
+
+        A Fictive game is a collection of YAML files which live in a folder. We use multiple files to help us keep our game organized, though for this simple tutorial game, we're going to limit how many files we use.
+
+        To get started, launch your text editor, and launch a terminal window. Navigate that terminal window to the directory you've installed Fictive to.
+
+        The commands you type in this window can also be typed in your terminal editor while you work. Type `next` to continue.
+    on_enter:
+        banner: Getting Started
+- transition: &to_starting_setup
+    from: starting_start
+    to: mkgame_dir
+    condition:
+        match: next
+- state: &mkgame_dir
+    tag: mkgame_dir
+    description: |
+        First, we make our game directory. Decide what to call your game, and then type:
+
+        `mkdir games/MYGAMENAME`
+
+        Replacing `MYGAMENAME` with your game name.
+    on_enter:
+        banner: Project Setup
+- transition: &to_make_manifest
+    from: mkgame_dir
+    to: make_manifest
+    condition:
+        match:
+            matcher: mkdir games/(.+)
+            keys: [game_name]
+- transition: &to_mkgame_dir_failed
+    from: mkgame_dir
+    to: mkgame_dir_failed
+    condition: always
+- state: &mkgame_dir_failed
+    tag: mkgame_dir_failed
+    description: |
+        You mis-typed something. Try again.
+    on_enter: revert
+- state: &make_manifest
+    tag: make_manifest
+    description: |
+        Now, using your text editor, create a file called `manifest.yaml` in `games/{game_name}`. This file will contain important metadata about your game.
+
+        Type `next` to see what this file should look like.
+- transition: &to_fill_manifest
+    from: make_manifest
+    to: fill_manifest
+    condition:
+        match: next
+- state: &fill_manifest
+    tag: fill_manifest
+    description: |
+        Put this in your `games/{game_name}/manifest.yaml`, modifying as needed, and then type `next`.
+        
+        `manifest.yaml`:
+        ```yaml
+            title: Some title for your game
+            slug: A brief description of your game
+            author: Your Name
+            files:
+                - main.yaml
+        ```
+- transition: &to_machine_description
+    from: fill_manifest
+    to: machine_description
+    condition:
+        match: next
+- state: &machine_description
+    tag: machine_description
+    description: |
+        Create and open your `games/{game_name}/main.yaml`. This is where we'll describe the core of your game.
+
+        You will describe your game as a series of "states", and the "transitions" between them.
+
+        We'll build that template up, but for now, put the following in your `main.yaml`:
+
+        ```yaml
+        # we'll fill in these blanks in a moment
+        - execute:
+            states:
+            transitions:
+            startTag:
+        ```
+
+        Your game is a *list* in YAML (the `-` indicates a list entry). You must have at least one list element, named `execute`. Indentation matters!
+
+        Type `machine` to go to the next screen.
+- transition: &to_state_definition
+    from: machine_description
+    to: state_definition_tag
+    condition:
+        match: machine
+- state: &state_definition_tag
+    tag: state_definition_tag
+    description: |
+        A `state` has two required elements. The first is the `tag`: a useful handle for referring to states. The other is the description.
+
+        Start by typing a short tag for a state:
+- transition: &to_state_definition_desc
+    from: state_definition_tag
+    to: state_definition_desc
+    condition:
+        match:
+            matcher: (.+)
+            keys: [demo.state.tag]
+- state: &state_definition_desc
+    tag: state_definition_desc
+    description: |
+        Now, for the state you're tagging `{demo.state.tag}`, why don't you enter a short description? The description supports Markdown, so feel free to be fancy.
+- transition: &to_state_definition_finished
+    from: state_definition_desc
+    to: state_definition_finished
+    condition:
+        match:
+            matcher: (.+)
+            keys: [demo.state.desc]
+- state: &state_definition_finished
+    tag: state_definition_finished
+    description: |
+        Great. In YAML, we'd represent this like so:
+
+        ```yaml
+        state:
+            tag: {demo.state.tag}
+            description: |
+                {demo.state.desc}
+        ```
+
+        For more on the `|` used above, check the [YAML Syntax](https://ref.coddy.tech/yaml/yaml-strings).
+
+        Hit enter to continue.
+- transition: &to_state_embedded
+    from: state_definition_finished
+    to: state_embedded
+    condition: always
+- state: &state_embedded
+    tag: state_embedded
+    description: |
+        In our `main.yaml`, it would look like this:
+
+        ```yaml
+            - execute:
+                states:
+                    - state:
+                        tag: {demo.state.tag}
+                        description: |
+                            {demo.state.desc}
+                transitions:
+                startTag: {demo.state.tag}
+        ```
+
+        The `startTag` entry tells the game that the first state should be the one we just created. Add a second state to your file, like the one here. Tag it `the_end`.
+
+        Type `the_end` to continue.
+- transition: &to_start_transitions
+    from: state_embedded
+    to: start_transitions
+    condition:
+        match: the_end
+- state: &start_transitions
+    tag: start_transitions
+    description: |
+        Now we have a game with two states. We need a way to move between them, which means we need a transition.
+
+        Each transition moves us **from** one state **to** another, based on some **condition**.
+
+        In YAML, it looks like this:
+
+        ```yaml
+        transition:
+            from: {demo.state.tag}
+            to: the_end
+            condition:
+                match: Hello World!
+        ```
+
+        The `match` says that this transition fires if (and only if!) the user types "Hello World!"
+
+        Type `transition` to see this in our `main.yaml`.
+- transition: &to_start_transitions_embedded
+    from: start_transitions
+    to: start_transitions_embedded
+    condition:
+        match: transition
+- state: &start_transitions_embedded
+    tag: start_transitions_embedded
+    description: |
+        ```yaml
+            - execute:
+                states:
+                    - state:
+                        tag: {demo.state.tag}
+                        description: |
+                            {demo.state.desc}
+                    - state: 
+                        tag: the_end
+                        description: |
+                            # The End
+                transitions:
+                    - transition:
+                        from: {demo.state.tag}
+                        to: the_end
+                        condition:
+                            match: Hello World!
+                startTag: {demo.state.tag}
+                # end tag lets Fictive know when your game is over
+                endTag: the_end 
+        ```
+        Hit enter to continue.
+- transition: &to_start_summary
+    from: start_transitions_embedded
+    to: start_summary
+    condition: always
+- state: &start_summary
+    tag: start_summary
+    description: |
+        Save your YAML files, exit, and relaunch Fictive. You should see your game there, and while it isn't much, it should work!
+
+        Or, from here, hit enter to go back to the **Overview**. There you can learn more about how to build games.
+- transition: &from_start_to_overview
+    from: start_summary
+    to: overview
+    condition: always
+- .starting_states: &starting_states
+    - *starting_start
+    - *mkgame_dir
+    - *mkgame_dir_failed
+    - *make_manifest
+    - *fill_manifest
+    - *machine_description
+    - *state_definition_tag
+    - *state_definition_desc
+    - *state_definition_finished
+    - *state_embedded
+    - *start_transitions
+    - *start_transitions_embedded
+    - *start_summary
+- .starting_trans: &starting_trans
+    - *to_starting_setup
+    - *to_make_manifest
+    - *to_mkgame_dir_failed
+    - *to_fill_manifest
+    - *to_machine_description
+    - *to_state_definition
+    - *to_state_definition_desc
+    - *to_state_definition_finished
+    - *to_state_embedded
+    - *to_start_transitions
+    - *to_start_transitions_embedded
+    - *to_start_summary
+    - *from_start_to_overview
+

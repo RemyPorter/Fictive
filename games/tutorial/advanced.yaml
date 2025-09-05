@@ -1,0 +1,128 @@
+- advanced_states: &advanced_states
+    - state:
+        tag: start_advanced_transitions
+        description: |
+            When combined with our state bag, we can make our transitions much richer.
+
+            You can do `eq`, `gt`, `lt`, `gte`, `lte` comparisons against the keys in our state bag, and you can have multiple conditions on the same transition, which must *all* be true to pass.
+
+            Press enter to continue.
+        on_enter:
+            banner: Advanced Transitions
+    - state:
+        tag: basic_comparisons
+        description: |
+            Let's say you want the player to choose between a wrench and a hammer at the start of the game. Much later in the game, they come to a puzzle which requires them to do something different, depending on whether they have the wrench or the hammer.
+
+            So, early in the game, you might write something like this:
+
+            ```yaml
+            - transition:
+                from: pick_tool
+                to: tool_picked
+                condition:
+                    match:
+                        matcher: (use|get|take)( the)? (wrench|hammer)
+                        keys: [_, _, inventory.tool] # we use the "_" key to represent captures we don't care about
+            ```
+
+            Take a tool to continue.
+    - state:
+        tag: delayed_decisions
+        description: |
+            After the tool is picked, the player can navigate through the same set of states until the tool they picked becomes relevant. At which time, you can give them transitions like this:
+
+            ```
+            # later in the game
+            - transition:
+                from: confront_the_door
+                to: panel_opened
+                condition:
+                    - match: open panel
+                    - eq:
+                        key: inventory.tool
+                        value: wrench
+            - transition:
+                from: confront_the_door
+                to: panel_smashed
+                condition:
+                    - match: smash panel
+                    - eq:
+                        key: inventory.tool
+                        value: hammer
+            ```
+
+            The `eq` function requires a key to be equal to a value. Note also that instead of passing a single condition function to `condition`, we're passing an array (note the `-` at the start of each line). When used this way, *all* the condition functions must be true.
+
+            You picked up {inventory.tool}. Do the right thing to move on.          
+    - state:
+        tag: more_on_comparisons
+        description: |
+            Like `eq`, there is also a `lt` (less than), `lte` (less than equal), `gt` (greater than), `gte` (greater than equal). Each of these functions will *try* to convert the key to a number, and failing that, they will then compare the text in lexical order.
+
+            You can also use these functions to compare two keys: 
+            ```yaml
+            condition:
+                eq:
+                    key: firstKey
+                    other: secondKey
+            ```
+
+            Note the use of `other` instead of `value`. 
+
+            Press Enter to continue.
+    - state:
+        tag: advanced_summary
+        description: |
+            You can set statebag entries in your YAML scripts, or collect them from user input, by using the long version of the `match` directive. 
+
+            With these, you can then use comparisons during your transitions to enable or disable different transitions, giving your game memory and flexibility.
+
+            Type `overview` to go back to the overview, or `submachine` to investigate how to make our states more robust and complex. 
+- advanced_trans: &advanced_trans
+    - transition:
+        from: overview
+        to: start_advanced_transitions
+        condition:
+            match: advance.*
+    - transition:
+        from: start_advanced_transitions
+        to: basic_comparisons
+        condition: always
+    - transition:
+        from: basic_comparisons
+        to: delayed_decisions
+        condition:
+            match:
+                matcher: (use|get|take)( the)? (wrench|hammer)
+                keys: [_, _, inventory.tool]
+    - transition:
+        from: delayed_decisions
+        to: more_on_comparisons
+        condition:
+            - match: open panel
+            - eq:
+                key: inventory.tool
+                value: wrench
+    - transition:
+        from: delayed_decisions
+        to: more_on_comparisons
+        condition:
+            - match: smash panel
+            - eq:
+                key: inventory.tool
+                value: hammer
+    - transition:
+        from: more_on_comparisons
+        to: advanced_summary
+        condition: always
+    - transition:
+        from: advanced_summary
+        to: overview
+        condition:
+            match: overview
+    - transition:
+        from: advanced_summary
+        to: start_sub
+        condition:
+            match: sub.*

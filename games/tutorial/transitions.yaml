@@ -1,0 +1,90 @@
+- transition_states: &transition_states
+    - state:
+        tag: intro_transitions
+        description: |
+            The core logic of your game is build by transitioning from one state to another. You've already built some simple transitions in previous exercises.
+  
+            ```yaml
+            - transition:
+            from: lastState
+            to: nextState
+            condition:
+            match: test
+            ```
+      
+            That transition declares that, when the player is in the `lastState` state, if they type `test`, the game will move to the `nextState`.
+      
+            Let's explore the basic kinds of transitions, starting with `match`.
+        on_enter:
+            banner: Transitions
+    - state:
+          tag: transitions_match_basic
+          description: |
+                The most commonly used transition is `match`, which compares the player input against a [Regular Expression](https://en.wikipedia.org/wiki/Regular_expression) (regex). It is beyond the scope of this tutorial to explain regexes to you, but a few key samples:
+            
+                ```yaml
+                match: match # matches only if the player input is "match"
+                match: .+ # matches if the player types at least one character
+                match: use( the)? .+ # matches "use lever" or "use the lever", or anything else aside from a lever.
+                match: \d+ # matches a number with 1 or more characters
+                ```
+
+                You can also use capturing groups. More on that when we discuss the `statebag`. Hit "enter" to continue.
+    - state:
+        tag: transitions_always
+        description: |
+            Sometimes, you simply want to move from one state to the next, regardless of what the player does. For that, we have the `always` transition.
+
+            ```yaml
+            - transition:
+                from: oldState
+                to: newState
+                condition: always
+            ```
+
+            No matter what the player types, once they hit enter, it moves to the next screen.
+            
+            This screen uses the `always` transition. Type anything and hit enter.
+    - state:
+        tag: transitions_global
+        description: |
+            Finally, when defining a machine, you can add some global transitions to it. These transitions may trigger on *any* state.
+
+            When defining your machine, you can add `states`, `transitions`, and `global_transitions`.
+
+            When the player gives your game input, Fictive will first check to see if any transitions attached to this state will fire, in order of definition. If none of those states fire, then Fictive will check the global transitions.
+
+            Global transitions can be helpful in a variety of ways, and are quite useful when used in conjunction with the revert `trigger`. Type `trigger` to learn about that, or hit enter to go back to the overview.    
+- transition_transitions: &transition_transitions
+    - transition:
+        from: overview
+        to: intro_transitions
+        condition:
+            match: trans.*
+    - transition:
+        from: intro_transitions
+        to: transitions_match_basic
+        condition:
+            match: match
+    - transition:
+        from: transitions_match_basic
+        to: triggers_and_statebag
+        condition:
+            match: statebag
+    - transition:
+        from: transitions_match_basic
+        to: transitions_always
+        condition: always
+    - transition:
+        from: transitions_always
+        to: transitions_global
+        condition: always
+    - transition:
+        from: transitions_global
+        to: triggers_and_statebag
+        condition:
+            match: trigger
+    - transition:
+        from: transitions_global
+        to: overview
+        condition: always

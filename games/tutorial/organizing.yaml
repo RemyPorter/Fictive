@@ -1,0 +1,113 @@
+- .organizing_states: &organizing_states
+    - state:
+        tag: intro_organizing
+        description: |
+            Your interactive fiction game is going to involve a large number of states, and managing that will be hard.
+
+            There are a few ways we can organize our games. Do you want to start with `references` or `files`, or head `back`?
+        on_enter:
+            banner: Organization
+    - state:
+        tag: organizing_references
+        description: |
+            YAML lets you organize sections of your file as references. The easiest way is to look at an example. We could define states like so:
+
+            ```yaml
+            - my_states: &my_states #&my_states is the anchor
+                - state:
+                    tag: start
+                    description: Hello World
+                - state:
+                    tag: end
+                    description: Goodbye World
+            - my_trans: &my_trans
+                - transition:
+                    from: start
+                    to: end
+                    condition:
+                        match: 
+            ```
+            Press enter to continue.
+    - state:
+        tag: organizing_using_references
+        description: |
+            Now, when we define our machine, we can do this:
+
+            ```yaml
+            - execute:
+                startTag: start
+                states:
+                    - *my_game # this reference links back to the anchor
+            ```
+            
+            `*my_game` inserts everything under the `&my_game` anchor into our machine. We can use this for any section or content in our game.
+
+            Type `files` to check out how to use files to organize your game, or press enter to go back.
+    - state:
+        tag: organizing_files
+        description: |
+            Breaking up your game into multiple files helps keeps your thoughts organized. Individual sections of your game can get their own file.
+
+            You can use as many files (and folders) as you like. They must all be inside your game folder, and they must all be listed in the `files` section of your manifest:
+
+            ```yaml
+            title: Example
+            slug: Multiple Files
+            author: Remy Porter
+            files:
+                - subFolder/file1.yaml
+                - subFolder/file2.yaml
+                - otherFolder/file1.yaml
+            ```
+
+            Press enter to continue.
+    - state:
+        tag: organizing_files_and_references
+        description: |
+            The order you put the files in your `manifest.yaml` matters if you use `references`. You should define your *anchor* (`&my_anchor`) is the load order *before* you *reference* it (`*my_anchor`).
+
+            This rule *does not* apply to the `tag` on your states; `tag`s can be used whenever, and simply need to be defined *somewhere* for your game to work. `references` are specifically a YAML feature, and that's why order matters.
+
+            Type `references` for more on how these can be used, or press enter to continue.
+- .organizing_trans: &organizing_trans
+    - transition:
+        from: overview
+        to: intro_organizing
+        condition:
+            match: org.*
+    - transition:
+        from: intro_organizing
+        to: organizing_references
+        condition: 
+            match: ref.*
+    - transition:
+        from: organizing_references
+        to: organizing_using_references
+        condition: always
+    - transition:
+        from: organizing_using_references
+        to: organizing_files
+        condition:
+            match: f.*
+    - transition:
+        from: organizing_using_references
+        to: intro_organizing
+        condition: always
+    - transition:
+        from: organizing_files
+        to: organizing_files_and_references
+        condition: always
+    - transition:
+        from: organizing_files_and_references
+        to: organizing_references
+        condition:
+            match: ref.*
+    - transition:
+        from: organizing_files_and_references
+        to: intro_organizing
+        condition: always
+    - transition:
+        from: intro_organizing
+        to: overview
+        condition:
+            match: back

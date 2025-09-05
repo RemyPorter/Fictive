@@ -1,0 +1,206 @@
+- trigger_states: &trigger_states
+    - state:
+        tag: triggers_and_statebag
+        description: |
+            States support an `on_enter` and an `on_exit` trigger. Here is one of the simplest triggers:
+
+            For example:
+            ```yaml
+            - state:
+                tag: Welcome
+                description: |
+                    Welcome to my game!
+                on_enter:
+                    banner: Hello World!
+            ```
+
+            In this example, this sets the banner (visible at the top of the box containing this text).
+
+            Enter a message, and we'll set that as the banner on the next screen.
+        on_enter:
+            banner: Triggers and the Statebag
+    - state:
+        tag: introduce_statebag
+        description: |
+            You should see your banner. Which raises a question: how did we remember that detail between screens? We used the `statebag`.
+
+            The statebag is a dictionary of values you've decided are important in your game. The simplest way to interact with the statebag is using the `set` trigger. For example:
+
+            ```yaml
+            - state:
+                tag: pick_up_wrench
+                description: You've picked up the wrench.
+                on_enter:
+                    set:
+                        key: has_wrench
+                        value: true
+            ```
+
+            Type `get (some item)` to "pick up" an object and move to the next screen.
+        on_enter:
+            banner: "{trigger.statebag.banner}"
+    - state:
+        tag: print_statebag
+        description: |
+            You picked up a {trigger.statebag.item}.
+
+            How did we print out that value? When writing a description for a state (or passing a parameter to a trigger, like `banner`), we can output it by writing the name of the key in curly brackets, like so: `\{picked.up.item\}`.
+
+            How do we get values into our statebag? Hit enter to find out.
+        on_enter:
+            banner: The State Bag
+    - state:
+        tag: manipulate_statebag
+        description: |
+            # By Default
+            You can set default values for your statebag in your YAML files, by simply adding a `state_bag` key:
+
+            ```yaml
+            - execute:
+                # machine definition
+            - state_bag:
+                someKey: someValue
+                otherKey: 5
+            ```
+
+            # From Player Input
+            Or you can get values from the player directly, as part of a match. Thus far, we've used this match syntax:
+
+            ```yaml
+            match: myRegex
+            ```
+
+            But there's a longer way, which lets you use capture groups.
+
+            ```yaml
+            match:
+                matcher: get (.+)
+                keys: [item]
+            ```
+
+            If the player types `get wrench`, "wrench" will be stored in the statebag as `item`. Note that `keys` must be a list, which is why `item` is in `[]`.
+
+            Currently, there's a key in our `state_bag` called `example_increment`. It's currently {example_increment}.
+
+            Hit enter to continue.
+    - state:
+        tag: other_statebag_functions
+        description: |
+            After you came to this screen, the `example_increment` is {example_increment}. That's because we used the `inc` function to increment it.
+
+            There is an `inc` and `dec` function, which both take the name of a key, for example:
+
+            ```yaml
+            on_enter:
+                inc: example_increment
+            ```
+
+            You can use these functions to make counters. Press enter for a summary of these trigger functions, or type `types` to learn more about how Fictive handles the *type* of data stored in your statebag.
+        on_enter:
+            inc: example_increment
+    - state:
+        tag: statebag_types
+        description: |
+            If you're used to programming, you're familiar with the concept of datatypes. And I have bad news for you about our statebag- or maybe good news, depending on your stance. Everything in the statebag should be assumed to be "stringly" typed.
+
+            When we use functions like `inc` or `dec` (or conditions like `on_gt`), Fictive will make its best effort to convert the data into a number. Otherwise, everything is best treated as text.
+
+            # On Using the State Bag
+            The vast majority of your game's state *should be represented by states*. That's the entire purpose of using a state machine. The purpose of the state bag is to allow you to carry some information between states, and use that information to control what transitions are available and where they go. The state bag is intentionally simple and limited, and is not meant to represent a full set of programming variables.
+
+            Also note well: the statebag is essentially a collection of global variables, and carries all the risks thereof. Use it sparingly.
+
+            Press enter to continue.
+    - state:
+        tag: trigger_revert
+        description: |
+            There is one last kind of trigger, which does not depend on the statebag, but is itself a very useful tool. There are a number of reasons why you may want to revert a state transition as soon as it happens. For example, you may want to, on erroneous input, provide some feedback to the player about what may be more correct. Or instead of transitioning to a new state when the player flips a switch, you just want to provide confirmation that their action happened.
+
+            For this, we have the `revert` trigger:
+
+            ```yaml
+            - state:
+                tag: this_will_revert
+                description: This is a simple state which will undo itself automatically.
+                on_enter: revert
+            ```
+
+            Type `revert` to see how a `revert`ed state displays, or type `summary` to continue.
+    - state:
+        tag: demo_revert
+        description: You triggered a reverting state. Note how it displays in its own update box, separate from the main state. Transient state boxes may also have their own caption, set with the `transbanner` trigger.
+        on_enter: 
+            - transbanner: A Transient State
+            - revert
+    - state:
+        tag: trigger_summary
+        description: |
+            # Triggers and the State Bag
+            Triggers can execute when we `on_enter` or `on_exit` a state. These allow us to interact with state bag keys, which can be treated like variables. They can be used in the output of our screens, modified by triggers (or the extended version of `match`).
+
+            From here, you can return to the `overview` or jump straight into `advanced` transitions.
+        on_enter:
+            banner: Triggers and the State Bag
+
+- trigger_transitions: &trigger_transitions
+    - transition:
+        from: overview
+        to: triggers_and_statebag
+        condition:
+            match: (trig.*|statebag)
+    - transition:
+        from: triggers_and_statebag
+        to: introduce_statebag
+        condition:
+            match:
+                matcher: (.+)
+                keys: [trigger.statebag.banner]
+    - transition:
+        from: introduce_statebag
+        to: print_statebag
+        condition:
+            match:
+                matcher: get (.+)
+                keys: [trigger.statebag.item]
+    - transition:
+        from: print_statebag
+        to: manipulate_statebag
+        condition: always
+    - transition:
+        from: manipulate_statebag
+        to: other_statebag_functions
+        condition: always
+    - transition:
+        from: other_statebag_functions
+        to: statebag_types
+        condition:
+            match: types
+    - transition:
+        from: statebag_types
+        to: trigger_revert
+        condition: always
+    - transition:
+        from: other_statebag_functions
+        to: trigger_revert
+        condition: always
+    - transition:
+        from: trigger_revert
+        to: demo_revert
+        condition:
+            match: revert
+    - transition:
+        from: trigger_revert
+        to: trigger_summary
+        condition:
+            matcH: summary
+    - transition:
+        from: trigger_summary
+        to: overview
+        condition:
+            match: over.*
+    - transition:
+        from: trigger_summary
+        to: start_advanced_transitions
+        condition:
+            match: adv.*
+        

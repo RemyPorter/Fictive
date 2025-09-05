@@ -1,0 +1,108 @@
+- sub_sub: &sub_sub
+    states:
+        - state:
+            tag: switch_off
+            description: There is a switch here. It is off.
+            on_enter:
+                set:
+                    key: sub_switch
+                    value: off
+        - state:
+            tag: switch_on
+            description: There is a switch here. It is on.
+            on_enter:
+                set: 
+                    key: sub_switch
+                    value: on
+    transitions:
+        - transition:
+            from: switch_off
+            to: switch_on
+            condition:
+                match: (turn|switch|flip).*
+        - transition:
+            from: switch_on
+            to: switch_off
+            condition:
+                match: (turn|switch|flip).*
+    startTag: switch_off
+- sub_states: &sub_states
+    - state:
+        tag: start_sub
+        description: |
+            To paraphrase: "Yo dawg, we heard you liked state machines, so we put a state machine in your state machine."
+
+            Fictive supports nested states. Any state can have a sub-state machine. 
+
+            To see what the player sees, hit enter.
+    - state:
+        tag: sub_example
+        description: |
+            This state has a sub-state machine. The sub-state, in this case, represents a switch. Turn the switch on.
+
+            Then hit enter to continue.
+        sub_machine: *sub_sub
+    - state:
+        tag: sub_switch_reminder
+        description: |
+            You must set the switch on before you can continue! Try `switch` or `flip`.
+        on_enter: revert
+    - state:
+        tag: sub_summary
+        description: |
+            Sub-machines let you create "minigames" inside of a larger state. They still can interact with the global state bag- I can see that the switch is {sub_switch} by checking the state bag. 
+
+            You can use them to represent conversations with NPCs, switches, levers, or other items.
+
+            States in a sub-machine can contain sub-machines themselves, allowing you to nest indefinitiely. My advice would be *not* to do that.
+
+            Press enter to see how we do this in our YAML.
+    - state:
+        tag: sub_show_code
+        description: |
+            First, we define a machine:
+            ```yaml
+            machine: &sub_machine
+                - states: # put states here
+                - transitions: # etc.
+            main_states: &main_states:
+                - state:
+                    tag: state_with_substates
+                    description: This state has sub_states
+                    sub_machine: *sub_machine # insert the machine
+            ```
+            Now, whenever a player is on the `state_with_substates` state, the `sub_machine` is active. It behaves like any other state machine; it just only is active during the `state_with_substates` state.
+
+            Press enter to return to the overview.
+- sub_trans: &sub_trans
+    - transition:
+        from: overview
+        to: start_sub
+        condition: 
+            match: sub.*
+    - transition:
+        from: start_sub
+        to: sub_example
+        condition: always
+    - transition:
+        from: sub_example
+        to: sub_summary
+        condition:
+            eq:
+                key: sub_switch
+                value: on
+    - transition:
+        from: sub_example
+        to: sub_switch_reminder
+        condition:
+            eq:
+                key: sub_switch
+                value: off
+    - transition:
+        from: sub_summary
+        to: sub_show_code
+        condition: always
+    - transition:
+        from: sub_show_code
+        to: overview
+        condition: always

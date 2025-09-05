@@ -11,6 +11,12 @@ class TriggerTests(unittest.TestCase):
         set_key("test", "value")(None, "", d)
         self.assertEqual(d["test"], "value")
 
+    def test_set_key_templated(self):
+        d: Statebag = {"value": "world"}
+        s: str = "Hello {value}!"
+        set_key("test", s)(None, "", d)
+        self.assertEqual(d["test"], "Hello world!")
+
     def test_key_as_int(self):
         d: Statebag = {"int": 2, "str": "3", "nonnumeric": "abc"}
         self.assertEqual(key_as_int("int", d), 2)
@@ -213,3 +219,11 @@ class StatifyTests(unittest.TestCase):
         d = {"word": "ahoy"}
         replaced = statify(templated, d)
         self.assertEqual(replaced, "ahoy, ahoy")
+
+    def test_templated_banner(self):
+        f = {
+            "banner": "{my_template}"
+        }
+        d: Statebag = {"my_template": "Hello World!"}
+        res = parse_function(f)(None, "", d)
+        self.assertEqual(d["state.banner"], "Hello World!")
