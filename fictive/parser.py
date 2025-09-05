@@ -9,15 +9,29 @@ from functools import partial
 from typing import Dict, Callable
 
 # convert commands in YAML to functions in Python
-TRIGGER_MAP:Dict[str,Callable] = {
+# the more verbose ones are in here as legacy support
+# (for just me, but I've already built some code which uses them),
+# but they all have shorter synonyms now
+TRIGGER_MAP: Dict[str, Callable] = {
     "set_key": set_key,
+    "set": set_key,
     "on_match": on_match,
+    "match": on_match,
     "on_key": on_key,
+    "eq": on_key,
     "on_all": on_all,
+    "all": on_all,
     "on_any": on_any,
+    "any": on_any,
     "revert": do_enter_revert,
     "on_gt": on_key_gt,
+    "gt": on_key_gt,
     "on_lt": on_key_lt,
+    "lt": on_key_lt,
+    "on_gte": on_key_gte,
+    "gte": on_key_gte,
+    "on_lte": on_key_lte,
+    "lte": on_key_lte,
     "inc": inc,
     "dec": dec,
     "always": always,
@@ -50,9 +64,9 @@ def parse_function(entry):
         fname = list(entry.keys())[0]
         vals = entry[fname]
         f = TRIGGER_MAP[fname]
-        if isinstance(vals, dict): # kwargs
+        if isinstance(vals, dict):  # kwargs
             return f(**vals)
-        elif isinstance(vals, list): # list of args
+        elif isinstance(vals, list):  # list of args
             return f(*vals)
         else:
             return f(vals)

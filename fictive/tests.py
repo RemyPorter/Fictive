@@ -61,8 +61,35 @@ class TriggerTests(unittest.TestCase):
         d: Statebag = {"int": 5, "str": "3"}
         self.assertFalse(on_key_lt("int", 3)(None, "", d))
         self.assertFalse(on_key_lt("str", 2)(None, "", d))
-        self.assertFalse(on_key_lt("nokey", 6)(None, "", d))
+        # this is true, because we've made it so non-existent keys can pass
+        self.assertTrue(on_key_lt("nokey", 6)(None, "", d))
         self.assertTrue(on_key_lt("int", 7)(None, "", d))
+
+    def test_key_key_eq(self):
+        d: Statebag = {"a": 5, "b": 10, "c": 5}
+        self.assertTrue(on_key("a", other="c")(None, "", d))
+        self.assertFalse(on_key("a", other="b")(None, "", d))
+
+    def test_key_key_gt(self):
+        d: Statebag = {"a": 5, "b": 10, "c": 5}
+        self.assertTrue(on_key_gt("b", other="a")(None, "", d))
+        self.assertFalse(on_key_gt("a", other="c")(None, "", d))
+
+    def test_key_key_lt(self):
+        d: Statebag = {"a": 5, "b": 10, "c": 5}
+        self.assertFalse(on_key_lt("b", other="a")(None, "", d))
+        self.assertTrue(on_key_lt("a", other="b")(None, "", d))
+
+    def test_key_key_gte(self):
+        d: Statebag = {"a": 5, "b": 10, "c": 5}
+        self.assertTrue(on_key_gte("b", other="a")(None, "", d))
+        self.assertTrue(on_key_gte("a", other="c")(None, "", d))
+
+    def test_key_key_lte(self):
+        d: Statebag = {"a": 5, "b": 10, "c": 5}
+        self.assertFalse(on_key_lte("b", other="a")(None, "", d))
+        self.assertTrue(on_key_lte("a", other="b")(None, "", d))
+        self.assertTrue(on_key_lte("a", other="c")(None, "", d))
 
 
 class StatifyTests(unittest.TestCase):
@@ -126,3 +153,25 @@ class ParserTests(unittest.TestCase):
         with self.assertRaises(Machine.EnterAndRevert):
             res(None, "", d)
         self.assertEqual(d["foo"], 6)
+
+    def test_on_key_value_parser(self):
+        f = {
+            "on_key": {
+                "key": "test",
+                "value": 5
+            }
+        }
+        d: Statebag = {"test": 5, "other": 5}
+        res = parse_function(f)
+        self.assertTrue(res(None, "", d))
+
+    def test_on_key_key_parser(self):
+        f = {
+            "on_key": {
+                "key": "test",
+                "other": "other"
+            }
+        }
+        d: Statebag = {"test": 5, "other": 5}
+        res = parse_function(f)
+        self.assertTrue(res(None, "", d))
