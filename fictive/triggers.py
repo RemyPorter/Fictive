@@ -5,6 +5,7 @@ transitions.
 from .states import State, Machine, Statebag
 from re import Pattern, compile, IGNORECASE
 from typing import Dict, List, Callable
+from .print_helper import statify
 
 Matcher = Callable[[State, str, Statebag], bool]
 
@@ -14,7 +15,7 @@ def set_key(key: str, value: str | int):
     Set a key in our statebag. Mostly used in on_enter or on_exit events.
     """
     def _m(current: State, inp: str, statebag: Statebag) -> bool:
-        statebag[key] = value
+        statebag[key] = statify(value, statebag)
         return True
     return _m
 

@@ -13,9 +13,11 @@ This uses `uv`, so you should be able to do a `uv sync` to get up and running.
 ## Running
 `uv run python -m fictive <path to game folder>` runs the game engine in a terminal.
 
-`uv run textual serve fictive` runs the game engine in a web server.
+`uv run textual serve fictive <path to game folder>` runs the game engine in a web server.
 
 The supplied `example` folder represents a simple example game with a handful of states to navigate through. It uses substates, the statebag, and basically demos the core things you can do with Fictive.
+
+In addition to that game, there is also a `tutorial` game, which is both an example game, *and* an interactive instructional guide to working with Fictive.
 
 You can also run the unit tests: `uv run python -m unittest fictive.tests`. The unit tests are currently quite incomplete.
 
@@ -33,12 +35,11 @@ To make it easier to modularize your game, you can also use a directory. Inside 
 ```yaml
 title: The Title of Your Game
 slug: A short, one line description of your game
+author: Your Name - credit yourself!
 files: # an array of relative paths from your manifest
     - one.yaml
     - two.yaml
 ```
-
-You may also include an `author` key; this is optional but recommended.
 
 ## Making Fictive Games
 
@@ -100,15 +101,15 @@ on_enter:
 
 # named parameters:
 condition:
-    on_match: # function name
+    match: # function name
         matcher: someMatchCondition # the matcher parameter
 
 # unnamed parameters:
 condition:
-    on_match: someMatchCondition
+    match: someMatchCondition
 # or
 condition:
-    on_match:
+    match:
         - someMatchCondition
 ```
 
@@ -117,7 +118,7 @@ The game supports the following condition functions:
 
 ```yaml
 condition:
-    on_match:
+    match:
         matcher: regexHere
 ```
 
@@ -125,7 +126,7 @@ This transitions if a user's input matches the regex.
 
 ```yaml
 condition:
-    on_key:
+    eq:
         key: keyName
         value: value
 ```
@@ -134,15 +135,15 @@ This transitions if the state bag contains a key that equals that value.
 
 ```yaml
 condition:
-    - on_gt:
+    - gt:
         key: keyName
         value: value
-    - on_lt:
+    - lt:
         key: otherKeyName
         value: otherValue
 ```
 
-The `on_gt` and `on_lt` functions permit a transition when a greater than/less than comparison passes. Should be used with the `inc`/`dec` functions. Attempts to do a numeric comprarison first, but failing that does a textual comparison. The key should exist, or this will fail.
+The `gt` and `lt` functions permit a transition when a greater than/less than comparison passes. Should be used with the `inc`/`dec` functions. Attempts to do a numeric comprarison first, but failing that does a textual comparison. The key should exist, or this will fail.
 
 ```yaml
 condition: always
@@ -156,9 +157,9 @@ For example:
 
 ```yaml
 condition:
-    - on_match:
+    - match:
         matcher: someRegex
-    - on_key:
+    - eq:
         key: keyName
         value: value
 ```
@@ -188,7 +189,7 @@ on_enter:
         value: value
 ```
 
-This sets a key (which can then be checked by the `on_key` transition function).
+This sets a key (which can then be checked by the `eq` transition function).
 
 ```yaml
 on_enter:

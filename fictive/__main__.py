@@ -20,9 +20,11 @@ parser.add_argument("--test", "-t", action="store_true",
 args = parser.parse_args()
 
 if args.test:
-    breakpoint()
+    breakpoint() # yes, this is intentional. The test flag is developer only, so 
+                 # while we wait for having better dev tools, this is it.
     loaded = load_game_yaml(args.game_dir)
     parsed = parse(loaded)
+    exit(0)
 
 
 async def game_loop():

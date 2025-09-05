@@ -1,0 +1,90 @@
+- state: &introduction
+    tag: introduction
+    description: |
+      # Welcome to Fictive
+      Fictive is a tool for writing interactive fiction games.
+
+      This game is meant to be an introduction to how it works. Fictive is still a work in progress, and likely will be for awhile. Is is, however, full featured enough to be useful, and this tutorial will teach you how to write games for it.
+      
+      To get started, you must have some basic understanding of how to use your terminal/command-prompt, and a text editor. Familiarity with YAML helps, but is not required.
+
+      At almost any time, you can type "exit" or "quit" to leave the tutorial game.
+
+      Type `next` to move on.
+    on_enter:
+        banner: "Welcome to Fictive"
+- transition: &to_overview
+    from: introduction
+    to: overview
+    condition:
+        match: next
+- state: &overview
+    tag: overview
+    description: |
+        When writing Fictive, you are designing a [state machine](https://en.wikipedia.org/wiki/Finite-state_machine). Each **state** represents a "page" in your story. A key moment where the player can make a choice. The user types their command into the prompt, and based on their input and the **transition** you defined, it moves them to the next **state**.
+
+        You will write your games in [YAML](https://en.wikipedia.org/wiki/YAML), which is both a simple markup language, and offers some conveniences for organizing your games.
+
+        Do you want to learn more about:
+
+        * `about` Fictive
+        * `start`ing a Fictive - build a simple game
+        * `organizing` your game
+        * `transitions` - more on how to move between states
+        * `triggers` and the `statebag` - a game with memory
+        * `advanced` transitions
+        * `sub`machines
+
+        Or type `exit` to exit.
+    on_enter:
+        banner: Fictive Overview
+- transition: &to_starting
+    from: overview
+    to: starting_start
+    condition:
+        match: start.*
+- transition: &to_about
+    from: overview
+    to: about
+    condition:
+        match: about.*
+- state: &about
+    tag: about
+    description: |
+        Fictive is an interactive fiction tool that strikes a balance between the simulation-oriented approach of traditional [Inform](https://en.wikipedia.org/wiki/Inform) style games and the Choose-Your-Own-Adventure approach of tools like [Twine](https://en.wikipedia.org/wiki/Twine_\(software\)).
+
+        Fictive is:
+        
+        * Markdown enabled - display your text with powerful, but simple markup
+        * terminal first - everything works from a command line, like the classic games
+        * web-enabled - your games can be served via the web
+        * simple but flexible, with an extremely powerful transition system to string your story together
+        * free-form commands - instead of stock verbs, or direct links, game designers can create arbitrary commands
+        * YAML-focused - by leveraging some of YAML's more advanced features, it's easy to modularize and organize your game.
+        * Full of `statebag`s -the easy-to-use `statebag` system makes it easy to give your game "memory", allowing early choices to influence later portions of the game.
+
+        Hit `enter` to return to the **Overview**.
+    on_enter:
+        banner: About Fictive
+- state: &exit_game
+    tag: exit_game
+    description: |
+        # Thank You
+
+        Hopefully, this tutorial helps you get started making your interactive fiction dreams come true.
+
+        Hit enter to return to the game picker.
+- transition: &about_to_overview
+    from: about
+    to: overview
+    condition: always
+- .intro_states: &intro_states
+    - *introduction
+    - *overview
+    - *about
+    - *exit_game
+- .intro_trans: &intro_trans
+    - *to_overview
+    - *to_starting
+    - *to_about
+    - *about_to_overview

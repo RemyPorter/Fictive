@@ -1,0 +1,12 @@
+title: A Fictive Tutorial
+slug: Learn to Write Fictive
+author: Remy Porter
+files:
+    - intro.yaml
+    - starting.yaml
+    - organizing.yaml
+    - transitions.yaml
+    - triggers.yaml
+    - advanced.yaml
+    - sub.yaml
+    - machine.yaml

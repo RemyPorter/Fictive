@@ -1,0 +1,29 @@
+- machine: &main
+    states:
+        - *intro_states
+        - *starting_states
+        - *organizing_states
+        - *transition_states
+        - *trigger_states
+        - *advanced_states
+        - *sub_states
+    transitions:
+        - *intro_trans
+        - *starting_trans
+        - *organizing_trans
+        - *transition_transitions
+        - *trigger_transitions
+        - *advanced_trans
+        - *sub_trans
+    global_transitions:
+        - transition:
+            to: exit_game
+            condition:
+                match: (exit|quit)
+    startTag: introduction
+    endTag: exit_game
+- execute: *main
+- state_bag:
+    game_name: ""
+    setup_done: False
+    example_increment: 10
