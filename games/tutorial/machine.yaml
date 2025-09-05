@@ -1,0 +1,39 @@
+- machine: &main
+    states:
+        - *introduction
+        - *overview
+        - *about
+        - *starting_start
+        - *mkgame_dir
+        - *make_manifest
+        - *fill_manifest
+        - *machine_description
+        - *state_definition_tag
+        - *state_definition_desc
+        - *state_definition_finished
+        - *state_embedded
+        - *start_transitions
+        - *start_transitions_embedded
+        - *start_summary
+    transitions:
+        - *to_overview
+        - *to_about
+        - *about_to_overview
+        - *to_starting
+        - *to_starting_setup
+        - *to_make_manifest
+        - *to_fill_manifest
+        - *to_machine_description
+        - *to_state_definition
+        - *to_state_definition_desc
+        - *to_state_definition_finished
+        - *to_state_embedded
+        - *to_start_transitions
+        - *to_start_transitions_embedded
+        - *to_start_summary
+        - *from_start_to_overview
+    startTag: introduction
+- execute: *main
+- state_bag:
+    game_name: ""
+    setup_done: False
