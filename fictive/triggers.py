@@ -9,7 +9,7 @@ from typing import Dict, List, Callable
 Matcher = Callable[[State, str, Statebag], bool]
 
 
-def set_key(key: str, value: str|int):
+def set_key(key: str, value: str | int):
     """
     Set a key in our statebag. Mostly used in on_enter or on_exit events.
     """
@@ -18,11 +18,13 @@ def set_key(key: str, value: str|int):
         return True
     return _m
 
-def key_as_int(key:str, statebag:Statebag):
+
+def key_as_int(key: str, statebag: Statebag):
     try:
         return int(statebag[key])
     except:
         return 0
+
 
 def inc(key: str):
     """
@@ -33,6 +35,7 @@ def inc(key: str):
         statebag[key] = key_as_int(key, statebag) + 1
         return True
     return _m
+
 
 def dec(key: str):
     """
@@ -45,7 +48,7 @@ def dec(key: str):
     return _m
 
 
-def on_match(matcher: Pattern | str, keys: List[str]|None = None):
+def on_match(matcher: Pattern | str, keys: List[str] | None = None):
     """
     An on_match condition. Usually checked against input as part of a
     transition. Supports regexes. Precompiles the regex and captures it.
@@ -69,65 +72,114 @@ def on_match(matcher: Pattern | str, keys: List[str]|None = None):
     return _m
 
 
-def on_key(key: str, value: str|int):
+def _compare_keys(keyA: str, keyB: str, statebag: Statebag):
     """
-    Transition condition that checks a key in our statebag. Only supports equality checks.
+    Safe comparison; ensures the keys exist, and tries reasonable
+    conversions on them to do a comparison.
+
+    If either key doesn't exist, this will always return -1
+    """
+    if keyA in statebag and keyB in statebag:
+        a = statebag[keyA]
+        b = statebag[keyB]
+        if isinstance(a, type(b)):  # best case
+            if a < b:
+                return -1
+            if a == b:
+                return 0
+            return 1
+        try:  # try as integers
+            iA = int(a)
+            iB = int(b)
+            if iA < iB:
+                return -1
+            if iA == iB:
+                return 0
+            return 1
+        except:
+            pass
+        sA = str(a)
+        sB = str(b)
+        if sA < sB:
+            return -1
+        if sA == sB:
+            return 0
+        return 1
+    return -1
+
+
+def on_key(key: str, value: str | int = None, other: str | None = None):
+    """
+    Transition condition that checks a key in our statebag against either a
+    value *or* another key.
     """
     def _m(current: State, inp: str, statebag: Statebag):
-        return key in statebag and statebag[key] == value
+        if value:
+            return key in statebag and statebag[key] == value
+        if other:
+            return _compare_keys(key, other, statebag) == 0
     return _m
 
-def on_key_gt(key: str, value: str|int):
+
+def on_key_gt(key: str, value: str | int = None, other: str | None = None):
     """
     Transition condition that checks a key in our statebag. If it converts to int
     it uses a numeric comparison. Otherwise it's a textual comparison.
     """
     def _m(current: State, inp: str, statebag: Statebag):
-        if not key in statebag:
-            return False
-        try:
-            v = int(statebag[key])
-            return v > int(value)
-        except:
-            return str(statebag[key]) > str(value)
+        if value:
+            try:
+                v = int(statebag.get(key, 0))
+                return v > int(value)
+            except:
+                return str(statebag.get(key, "")) > str(value)
+        if other:
+            return _compare_keys(key, other, statebag) > 0
     return _m
 
-def on_key_lt(key: str, value: str|int):
+
+def on_key_lt(key: str, value: str | int = None, other: str | None = None):
     """
     Transition condition that checks a key in our statebag. If it converts to int
     it uses a numeric comparison. Otherwise it's a textual comparison.
     """
     def _m(current: State, inp: str, statebag: Statebag):
-        if not key in statebag:
-            return False
-        try:
-            v = int(statebag[key])
-            return v < int(value)
-        except:
-            return str(statebag[key]) < str(value)
+        if value:
+            try:
+                v = int(statebag.get(key, 0))
+                return v < int(value)
+            except:
+                return str(statebag.get(key, "")) < str(value)
+        if other:
+            return _compare_keys(key, other, statebag) < 0
     return _m
 
-def on_key_gte(key: str, value: str|int):
+
+def on_key_gte(key: str, value: str | int = None, other: str | None = None):
     def _m(current: State, inp: str, statebag: Statebag):
-        if not key in statebag:
-            return False
-        try:
-            v = int(statebag[key])
-            return v >= int(value)
-        except:
-            return str(statebag[key]) >= str(value)
+        if value:
+            try:
+                v = int(statebag.get(key, 0))
+                return v >= int(value)
+            except:
+                return str(statebag.get(key, "")) >= str(value)
+        if other:
+            return _compare_keys(key, other, statebag) >= 0
     return _m
 
-def on_key_lte(key: str, value: str|int):
+
+def on_key_lte(key: str, value: str | int = None, other: str | None = None):
     def _m(current: State, inp: str, statebag: Statebag):
-        if not key in statebag:
-            return False
-        try:
-            v = int(statebag[key])
-            return v <= int(value)
-        except:
-            return str(statebag[key]) <= str(value)
+        if value:
+            try:
+                v = int(statebag.get(key, 0))
+                return v <= int(value)
+            except:
+                return str(statebag.get(key, "")) <= str(value)
+        if other:
+            return _compare_keys(key, other, statebag) <= 0
     return _m
+
 
 def always():
     """
