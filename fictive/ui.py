@@ -200,8 +200,9 @@ class GameList(Widget):
         for p in path.iterdir():
             if p.is_dir():
                 title_slug_author = load_manifest_yaml(p)
-                self.games.append(title_slug_author)
-                self.paths.append(p)
+                if title_slug_author:
+                    self.games.append(title_slug_author)
+                    self.paths.append(p)
         self.path = path
 
     def on_mount(self):
@@ -276,6 +277,9 @@ class FictiveUI(App):
     @on(GameList.GamePicked)
     def on_game_picked(self, picked: GameList.GamePicked):
         loaded = load_game_yaml(Path(picked.path))
+        if not loaded:
+            # this game didn't have a manifest
+            return # TODO: handle error
         game, state_bag, title = parse(loaded)
         gameUI = GameUI(game, state_bag)
         self.install_screen(gameUI, name="running_game")

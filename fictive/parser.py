@@ -6,7 +6,8 @@ import io
 from fictive.states import *
 from fictive.triggers import *
 from functools import partial
-from typing import Dict, Callable
+from typing import Dict, Callable, Iterable
+from itertools import chain
 
 # convert commands in YAML to functions in Python
 # the more verbose ones are in here as legacy support
@@ -124,6 +125,16 @@ def parse_transition(entry: dict, machine: MachineDesc, is_global=False):
     else:
         machine.global_link(entry["to"], on_cbk)
 
+def _flatten(l:Iterable)->Iterable:
+    """
+    To help organizing your games, we want to be able to nest states inside of the state array,
+    so this will flatten them so we don't have to worry about how we do it.
+    """
+    for i in l:
+        if isinstance(i, Iterable) and not isinstance(i, (str, bytes, dict)):
+            yield from _flatten(i)
+        else:
+            yield i
 
 def parse_machine(entry: dict):
     """
@@ -131,8 +142,8 @@ def parse_machine(entry: dict):
     to execute.
     """
     desc = MachineDesc()
-    state_entries = entry["states"]
-    transitions = entry["transitions"]
+    state_entries = _flatten(entry["states"])
+    transitions = _flatten(entry["transitions"])
     if "global_transitions" in entry:
         global_trans = entry["global_transitions"]
     else:
