@@ -1,7 +1,23 @@
 import yaml
 from pathlib import Path
 from contextlib import ExitStack
+from typing import List, Iterator, Tuple
 
+def merge_game_yaml(root: Path, manifest: Path) -> Tuple[dict, str]:
+    """
+    By reading the manifest, load all the files in that manifest and
+    merge them into a single string so we can parse it in YAML.
+    """
+    if manifest.exists():
+        with manifest.open() as f:
+            mfest = yaml.load(f, yaml.SafeLoader)
+            files = [root / entry for entry in mfest["files"]]
+        with ExitStack() as stack:
+            read_from = [stack.enter_context(
+                entry.open()).read() for entry in files]
+        merged = "\n".join(read_from)
+        return mfest,merged
+    return None
 
 def load_game_yaml(gameInstance: Path | str):
     """
@@ -14,16 +30,11 @@ def load_game_yaml(gameInstance: Path | str):
             return yaml.load(f, yaml.SafeLoader)
     # otherwise, the game is in a directory, look for a manifest
     manifest = root / "manifest.yaml"
-    with manifest.open() as f:
-        mfest = yaml.load(f, yaml.SafeLoader)
-        files = [root / entry for entry in mfest["files"]]
-    with ExitStack() as stack:
-        read_from = [stack.enter_context(
-            entry.open()).read() for entry in files]
-    merged = "\n".join(read_from)
-
-    loaded = yaml.load(merged, yaml.SafeLoader)
-    return loaded + [{key: value} for key, value in mfest.items()]
+    mfest, merged = merge_game_yaml(root, manifest)
+    if merged:
+        loaded = yaml.load(merged, yaml.SafeLoader)
+        return loaded + [{key: value} for key, value in mfest.items()]
+    return None
 
 
 def load_manifest_yaml(gameInstance: Path | str):
@@ -33,6 +44,8 @@ def load_manifest_yaml(gameInstance: Path | str):
     """
     root = Path(gameInstance).resolve()
     manifest = root / "manifest.yaml"
-    with manifest.open() as f:
-        loaded = yaml.load(f, yaml.SafeLoader)
-    return loaded.get("title", "A Game"), loaded.get("slug", "Slug for a game"), loaded.get("author", "Anonymous")
+    if manifest.exists():
+        with manifest.open() as f:
+            loaded = yaml.load(f, yaml.SafeLoader)
+        return loaded.get("title", "A Game"), loaded.get("slug", "Slug for a game"), loaded.get("author", "Anonymous")
+    return None
