@@ -1,7 +1,7 @@
 from .triggers import *
 from .parser import *
 from .states import Machine
-from .print_helper import statify
+from .print_helper import statify, scan_for_template
 import unittest
 
 
@@ -92,23 +92,6 @@ class TriggerTests(unittest.TestCase):
         self.assertTrue(on_key_lte("a", other="c")(None, "", d))
 
 
-class StatifyTests(unittest.TestCase):
-    def test_no_template(self):
-        no_template = "This is a simple non-templated string."
-        self.assertEqual(no_template, statify(no_template, {}))
-
-    def test_template_match(self):
-        templated = "This is a {adjective} templated string."
-        d = {"adjective": "complex"}
-        self.assertEqual("This is a complex templated string.",
-                         statify(templated, d))
-
-    def test_template_no_match(self):
-        templated = "This is an {adjective} templated string."
-        self.assertEqual(
-            "This is an <<ERROR: adjective not in state bag>> templated string.", statify(templated, {}))
-
-
 class ParserTests(unittest.TestCase):
     def test_no_param_function(self):
         f = "revert"
@@ -175,3 +158,58 @@ class ParserTests(unittest.TestCase):
         d: Statebag = {"test": 5, "other": 5}
         res = parse_function(f)
         self.assertTrue(res(None, "", d))
+
+
+class TemplateStringTests(unittest.TestCase):
+    def test_scan_no_template(self):
+        text = "a simple, untemplated, test string"
+        self.assertEqual(scan_for_template(text), None)
+
+    def test_scan_template(self):
+        text = "a test string, {template}"
+        matched = scan_for_template(text)
+        self.assertEqual(matched.start, 15)
+        self.assertEqual(matched.end, 25)
+        self.assertEqual(matched.key, "template")
+        self.assertEqual(text[matched.start:matched.end], "{template}")
+
+    def test_scan_with_escape(self):
+        text = "a test string \\{with an escaped {template}"
+        matched = scan_for_template(text)
+        self.assertEqual(matched.key, "template")
+
+    def test_scan_with_two_templates(self):
+        text = "{template0}, {template1}"
+        firstMatch = scan_for_template(text)
+        secondMatch = scan_for_template(text[firstMatch.end:])
+        self.assertEqual(firstMatch.key, "template0")
+        self.assertEqual(secondMatch.key, "template1")
+
+
+class StatifyTests(unittest.TestCase):
+    def test_no_template(self):
+        no_template = "This is a simple non-templated string."
+        self.assertEqual(no_template, statify(no_template, {}))
+
+    def test_template_match(self):
+        templated = "This is a {adjective} templated string."
+        d = {"adjective": "complex"}
+        self.assertEqual("This is a complex templated string.",
+                         statify(templated, d))
+
+    def test_template_no_match(self):
+        templated = "This is an {adjective} templated string."
+        self.assertEqual(
+            "This is an <<ERROR: adjective not in state bag>> templated string.", statify(templated, {}))
+
+    def test_template_multi_match(self):
+        templated = "{greeting}, {target}!"
+        d = {"greeting": "Hello", "target": "World"}
+        replaced = statify(templated, d)
+        self.assertEqual(replaced, "Hello, World!")
+
+    def test_template_repeated_match(self):
+        templated = "{word}, {word}"
+        d = {"word": "ahoy"}
+        replaced = statify(templated, d)
+        self.assertEqual(replaced, "ahoy, ahoy")
