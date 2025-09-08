@@ -64,7 +64,7 @@ def parse_function(entry):
     if (isinstance(entry, dict)):  # this has parameters
         fname = list(entry.keys())[0]
         vals = entry[fname]
-        f = TRIGGER_MAP[fname]
+        f = TRIGGER_MAP[fname.lower()]
         if isinstance(vals, dict):  # kwargs
             return f(**vals)
         elif isinstance(vals, list):  # list of args
@@ -73,7 +73,7 @@ def parse_function(entry):
             return f(vals)
     else:
         fname = entry  # this does not
-        f = TRIGGER_MAP[fname]
+        f = TRIGGER_MAP[fname.lower()]
         return f()
 
 
@@ -125,7 +125,8 @@ def parse_transition(entry: dict, machine: MachineDesc, is_global=False):
     else:
         machine.global_link(entry["to"], on_cbk)
 
-def _flatten(l:Iterable)->Iterable:
+
+def _flatten(l: Iterable) -> Iterable:
     """
     To help organizing your games, we want to be able to nest states inside of the state array,
     so this will flatten them so we don't have to worry about how we do it.
@@ -135,6 +136,7 @@ def _flatten(l:Iterable)->Iterable:
             yield from _flatten(i)
         else:
             yield i
+
 
 def parse_machine(entry: dict):
     """
