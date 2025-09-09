@@ -2,8 +2,9 @@ from ruamel.yaml import YAML
 from pathlib import Path
 from contextlib import ExitStack
 from typing import List, Iterator, Tuple
+from dataclasses import dataclass
 
-yaml=YAML(typ='safe')   # default,
+yaml=YAML(typ='safe')   # default
 
 def merge_game_yaml(root: Path, manifest: Path) -> Tuple[dict, str]:
     """
@@ -39,7 +40,15 @@ def load_game_yaml(gameInstance: Path | str):
     return None
 
 
-def load_manifest_yaml(gameInstance: Path | str):
+@dataclass
+class GameListEntry:
+    """Helper class to keep track of the games in our gamedir"""
+    title:str
+    slug:str
+    author:str
+    path:Path
+
+def load_manifest_yaml(gameInstance: Path | str)->GameListEntry:
     """
     Read the manifest for a game, grabbing its 
     title and slug for display on the picker screen.
@@ -49,5 +58,20 @@ def load_manifest_yaml(gameInstance: Path | str):
     if manifest.exists():
         with manifest.open() as f:
             loaded = yaml.load(f)
-        return loaded.get("title", "A Game"), loaded.get("slug", "Slug for a game"), loaded.get("author", "Anonymous")
+        return GameListEntry(
+            loaded.get("title", "A Game"), 
+            loaded.get("slug", "Slug for a game"), 
+            loaded.get("author", "Anonymous"),
+            root)
     return None
+
+def scan_game_list(path:Path|str)->Iterator[GameListEntry]:
+    """
+    Scan a directory for game metadata.
+    """
+    p = Path(path).resolve()
+    for p in path.iterdir():
+        if p.is_dir() and (p / "manifest.yaml").exists():
+            mfest = load_manifest_yaml(p)
+            if mfest:
+                yield mfest

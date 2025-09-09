@@ -45,3 +45,7 @@ GamePicker > GameList {
 	align: right middle;
 	padding-left: 5;
 }
+
+GamePicker > Static {
+	color: cyan;
+}

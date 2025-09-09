@@ -5,7 +5,7 @@ from enum import StrEnum
 from .states import Machine, Statebag, State
 from .print_helper import statify
 from .parser import *
-from .loader import load_game_yaml, load_manifest_yaml
+from .loader import load_game_yaml, scan_game_list
 from textwrap import wrap
 from typing import Tuple, Iterable
 from pathlib import Path
@@ -102,7 +102,7 @@ class GameUI(Screen):
 
     def on_mount(self) -> None:
         # properly init our view without ticking the game forward
-        self.update(None, self.game.current())
+        self.update(Machine.StepResult(None, self.game.current(),None))
         self.focus_next(Input)
 
     def compose(self) -> ComposeResult:
@@ -120,7 +120,44 @@ class GameUI(Screen):
     def get_banner(self, level: "GameUI.Banners") -> str:
         return statify(self.state_bag.get(str(level) + ".banner", ""), self.state_bag)
 
-    def update(self, t: Machine.Result, s: State, transients: State = None):
+    def display_error(self, err:str):
+        err = self.query_exactly_one("#Error")
+        err.classes = "active"
+        err.update(res.additionalMessages, "ERROR")
+
+    def clear_error(self):
+        self.query_exactly_one("#Error").classes = "inactive"
+
+    def update_state(self, tick:Machine.StepResult):
+        state_banner = self.get_banner(GameUI.Banners.state)
+        # Update the main state box
+        self.query_exactly_one("#State").update(
+            statify(tick.state.description(), self.state_bag), state_banner
+        )
+
+    def update_substate(self, tick:Machine.StepResult):
+        subs_banner = self.get_banner(GameUI.Banners.sub)
+        # update the substate box
+        subs = self.query_exactly_one("#Substate")
+        if len(tick.state.substates()) > 0:
+            subs.update(statify("\n\n".join(tick.state.substates()),
+                        self.state_bag), subs_banner)
+            subs.classes = "active"
+        else:
+            subs.classes = "inactive"
+
+    def update_transients(self, tick:Machine.StepResult):
+        trans_banner = self.get_banner(GameUI.Banners.trans)
+        # update the transient state box
+        trans = self.query_exactly_one("#Transient")
+        if tick.transient:
+            trans.classes = "active"
+            trans.update(statify(tick.transient.description(),
+                         self.state_bag), trans_banner)
+        else:
+            trans.classes = "inactive"
+
+    def update(self, tick:Machine.StepResult):
         """
         Our core UI loop. Checks what we got out of the state machine, and
         updates several UI elements.
@@ -132,35 +169,16 @@ class GameUI(Screen):
         * The substate widget itself
         * Ditto, but for the transient box
         """
-        if t == Machine.Result.End:
+        if tick.action == Machine.Result.End:
             self.ended = True
-        # build the banners
-        state_banner = self.get_banner(GameUI.Banners.state)
-        subs_banner = self.get_banner(GameUI.Banners.sub)
-        trans_banner = self.get_banner(GameUI.Banners.trans)
-
-        # Update the main state box
-        self.query_exactly_one("#State").update(
-            statify(s.description(), self.state_bag), state_banner
-        )
-
-        # update the substate box
-        subs = self.query_exactly_one("#Substate")
-        if len(s.substates()) > 0:
-            subs.update(statify("\n\n".join(s.substates()),
-                        self.state_bag), subs_banner)
-            subs.classes = "active"
+        if tick.action == Machine.Result.Error:
+            self.display_error(tick.additionalMessages)
         else:
-            subs.classes = "inactive"
-
-        # update the transient state box
-        trans = self.query_exactly_one("#Transient")
-        if transients:
-            trans.classes = "active"
-            trans.update(statify(transients.description(),
-                         self.state_bag), trans_banner)
-        else:
-            trans.classes = "inactive"
+            self.clear_error()
+        
+        self.update_state(tick)
+        self.update_substate(tick)
+        self.update_transients(tick)
         # update our debugging view
         self.query_exactly_one("#Peek").update()
 
@@ -175,11 +193,7 @@ class GameUI(Screen):
             return
         inp = event.value
         res = self.game.step(inp, self.state_bag)
-        if res.action == Machine.Result.Error:
-            err = self.query_exactly_one("#Error")
-            err.classes = "active"
-            err.update(res.additionalMessages, "ERROR")
-        self.update(res.action, res.state, res.transient)
+        self.update(res)
         self.query_one(Input).value = ""
 
 
@@ -200,14 +214,6 @@ class GameList(Widget):
 
     def __init__(self, path):
         super().__init__()
-        self.paths = []
-        path = Path(path)
-        for p in path.iterdir():
-            if p.is_dir():
-                title_slug_author = load_manifest_yaml(p)
-                if title_slug_author:
-                    self.games.append(title_slug_author)
-                    self.paths.append(p)
         self.path = path
 
     def on_mount(self):
@@ -215,8 +221,17 @@ class GameList(Widget):
         dt.add_column("Game")
         dt.add_column("Description")
         dt.add_column("Author")
-        for title, slug, author in self.games:
-            dt.add_row(title, slug, author)
+        self.display()
+
+    def display(self):
+        dt = self.query_exactly_one(DataTable)
+        self.games = [g for g in scan_game_list(self.path)]
+        dt.clear()
+        for g in self.games:
+            dt.add_row(g.title, g.slug, g.author)
+
+    def on_screen_resume(self):
+        self.display()
 
     def compose(self):
         yield DataTable(zebra_stripes=True, cursor_type="row")
@@ -224,7 +239,10 @@ class GameList(Widget):
     @on(DataTable.RowSelected)
     def on_selected(self, item: DataTable.RowSelected):
         idx = item.cursor_row
-        self.post_message(GameList.GamePicked(self.paths[idx]))
+        self.post_message(
+            GameList.GamePicked(
+                self.games[idx].path)
+        )
 
 
 class GamePicker(Screen):
