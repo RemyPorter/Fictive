@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "mypy>=1.17.1",
-    "pyyaml>=6.0.2",
+    "ruamel-yaml>=0.18.15",
     "textual>=6.0.0",
     "textual-dev>=1.7.0",
 ]
