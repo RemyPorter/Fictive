@@ -59,6 +59,17 @@ class State:
         res += self._sub.current().substates()
         return res
 
+    def on_enter(self, s:"State", inp:str, bag:Statebag):
+        if self._sub:
+            self._sub.current().on_enter(s, inp, bag)
+        if self._on_enter:
+            return self._on_enter(s, inp, bag)
+        
+    def on_exit(self, s:"State", inp:str, bag:Statebag):
+        if self._sub:
+            self._sub.current().on_exit(s, inp, bag)
+        if self._on_exit:
+            return self._on_exit(s, inp, bag)
 
 
 
@@ -160,9 +171,7 @@ class Machine:
         return self._internal[self._current]
 
     def start(self, state_bag: Statebag):
-        self.current()._on_enter(self.current(), "", state_bag)
-        if self.current().sub():
-            self.current().sub().current()._on_enter(self.current(), "", state_bag)
+        self.current().on_enter(self.current(), "", state_bag)
 
     def step(self, inp: str, state_bag: Statebag) -> "Machine.StepResult":
         """
@@ -199,7 +208,7 @@ class Machine:
             if transed:
                 # try to exit, and if we fail, abort transitions
                 try:
-                    curr._on_exit(curr, inp, state_bag)
+                    curr.on_exit(curr, inp, state_bag)
                 except Exception as ex:
                     return Machine.StepResult(Machine.Result.Rejected,
                         curr,
@@ -207,7 +216,7 @@ class Machine:
                         str(ex))
                 # try to enter, any failures fail to transition
                 try:
-                    t.dest._on_enter(curr, inp, state_bag)
+                    t.dest.on_enter(curr, inp, state_bag)
                 except Machine.RejectWithMessage as ex:
                     return Machine.StepResult(Machine.Result.Rejected, \
                         curr, None, ex._msg)

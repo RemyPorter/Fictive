@@ -3,6 +3,8 @@ import asyncio
 
 import argparse
 from pathlib import Path
+from .loader import load_game_yaml
+from .parser import parse
 
 
 parser = argparse.ArgumentParser(
@@ -13,7 +15,14 @@ parser.add_argument("game_dir", type=str, default="games",
                     help="The path to your collection of games.")
 parser.add_argument("--debug", "-d", action="store_true",
                     help="Enable debugging features")
+parser.add_argument("--test", "-t", action="store_true",
+                    help="Test the loading of a game from a gamedir, without running it in the UI")
 args = parser.parse_args()
+
+if args.test:
+    breakpoint()
+    loaded = load_game_yaml(args.game_dir)
+    parsed = parse(loaded)
 
 
 async def game_loop():

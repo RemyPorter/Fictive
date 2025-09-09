@@ -112,6 +112,7 @@ class GameUI(Screen):
                 yield DisplayWrapper(id="State")
                 yield DisplayWrapper(id="Substate")
                 yield DisplayWrapper(id="Transient", classes="inactive")
+                yield DisplayWrapper(id="Error", classes="inactive")
             yield StatebagPeek(self.state_bag, id="Peek", classes="inactive")
         yield Input(placeholder="Enter a command…")
         yield Footer()
@@ -174,6 +175,10 @@ class GameUI(Screen):
             return
         inp = event.value
         res = self.game.step(inp, self.state_bag)
+        if res.action == Machine.Result.Error:
+            err = self.query_exactly_one("#Error")
+            err.classes = "active"
+            err.update(res.additionalMessages, "ERROR")
         self.update(res.action, res.state, res.transient)
         self.query_one(Input).value = ""
 
