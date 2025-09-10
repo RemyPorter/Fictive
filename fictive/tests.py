@@ -2,6 +2,7 @@ from .triggers import *
 from .parser import *
 from .states import Machine
 from .print_helper import statify, scan_for_template
+from .game_server import get_game_server, GameServer
 import unittest
 
 
@@ -174,22 +175,30 @@ class TemplateStringTests(unittest.TestCase):
     def test_scan_template(self):
         text = "a test string, {template}"
         matched = scan_for_template(text)
-        self.assertEqual(matched.start, 15)
-        self.assertEqual(matched.end, 25)
-        self.assertEqual(matched.key, "template")
-        self.assertEqual(text[matched.start:matched.end], "{template}")
+        self.assertTrue(matched is not None)
+        if matched is not None:
+            self.assertEqual(matched.start, 15)
+            self.assertEqual(matched.end, 25)
+            self.assertEqual(matched.key, "template")
+            self.assertEqual(text[matched.start:matched.end], "{template}")
 
     def test_scan_with_escape(self):
         text = "a test string \\{with an escaped {template}"
         matched = scan_for_template(text)
-        self.assertEqual(matched.key, "template")
+        self.assertTrue(matched is not None)
+        if matched is not None:
+            self.assertEqual(matched.key, "template")
 
     def test_scan_with_two_templates(self):
         text = "{template0}, {template1}"
         firstMatch = scan_for_template(text)
-        secondMatch = scan_for_template(text[firstMatch.end:])
-        self.assertEqual(firstMatch.key, "template0")
-        self.assertEqual(secondMatch.key, "template1")
+        self.assertTrue(firstMatch is not None)
+        if firstMatch is not None:
+            secondMatch = scan_for_template(text[firstMatch.end:])
+            self.assertTrue(secondMatch is not None)
+            self.assertEqual(firstMatch.key, "template0")
+            if secondMatch is not None:
+                self.assertEqual(secondMatch.key, "template1")
 
 
 class StatifyTests(unittest.TestCase):
@@ -199,7 +208,7 @@ class StatifyTests(unittest.TestCase):
 
     def test_template_match(self):
         templated = "This is a {adjective} templated string."
-        d = {"adjective": "complex"}
+        d:Statebag = {"adjective": "complex"}
         self.assertEqual("This is a complex templated string.",
                          statify(templated, d))
 
@@ -210,13 +219,13 @@ class StatifyTests(unittest.TestCase):
 
     def test_template_multi_match(self):
         templated = "{greeting}, {target}!"
-        d = {"greeting": "Hello", "target": "World"}
+        d:Statebag = {"greeting": "Hello", "target": "World"}
         replaced = statify(templated, d)
         self.assertEqual(replaced, "Hello, World!")
 
     def test_template_repeated_match(self):
         templated = "{word}, {word}"
-        d = {"word": "ahoy"}
+        d:Statebag = {"word": "ahoy"}
         replaced = statify(templated, d)
         self.assertEqual(replaced, "ahoy, ahoy")
 
@@ -227,3 +236,19 @@ class StatifyTests(unittest.TestCase):
         d: Statebag = {"my_template": "Hello World!"}
         res = parse_function(f)(None, "", d)
         self.assertEqual(d["state.banner"], "Hello World!")
+
+class GameServerTests(unittest.TestCase):
+    def test_instatiation(self):
+        gs0 = get_game_server()
+        gs1 = get_game_server()
+        self.assertTrue(gs0 is gs1)
+
+    def test_throws(self):
+        gs = get_game_server()
+        with self.assertRaises(GameServer.NotStarted):
+            gs.tick("test")
+
+    def test_other_instances(self):
+        g0 = get_game_server("g0")
+        g1 = get_game_server("g1")
+        self.assertFalse(g0 is g1)

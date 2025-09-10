@@ -15,7 +15,10 @@ def set_key(key: str, value: str | int):
     Set a key in our statebag. Mostly used in on_enter or on_exit events.
     """
     def _m(current: State, inp: str, statebag: Statebag) -> bool:
-        statebag[key] = statify(value, statebag)
+        if isinstance(value, str):
+            statebag[key] = statify(value, statebag)
+        else:
+            statebag[key] = value
         return True
     return _m
 
@@ -84,9 +87,9 @@ def _compare_keys(keyA: str, keyB: str, statebag: Statebag):
         a = statebag[keyA]
         b = statebag[keyB]
         if isinstance(a, type(b)):  # best case
-            if a < b:
+            if a < b: # type: ignore
                 return -1
-            if a == b:
+            if a == b: # type: ignore
                 return 0
             return 1
         try:  # try as integers
@@ -109,7 +112,7 @@ def _compare_keys(keyA: str, keyB: str, statebag: Statebag):
     return -1
 
 
-def on_key(key: str, value: str | int = None, other: str | None = None):
+def on_key(key: str, value: str | int | None = None, other: str | None = None):
     """
     Transition condition that checks a key in our statebag against either a
     value *or* another key.
@@ -122,7 +125,7 @@ def on_key(key: str, value: str | int = None, other: str | None = None):
     return _m
 
 
-def on_key_gt(key: str, value: str | int = None, other: str | None = None):
+def on_key_gt(key: str, value: str | int | None = None, other: str | None = None):
     """
     Transition condition that checks a key in our statebag. If it converts to int
     it uses a numeric comparison. Otherwise it's a textual comparison.
@@ -139,7 +142,7 @@ def on_key_gt(key: str, value: str | int = None, other: str | None = None):
     return _m
 
 
-def on_key_lt(key: str, value: str | int = None, other: str | None = None):
+def on_key_lt(key: str, value: str | int | None = None, other: str | None = None):
     """
     Transition condition that checks a key in our statebag. If it converts to int
     it uses a numeric comparison. Otherwise it's a textual comparison.
@@ -156,7 +159,7 @@ def on_key_lt(key: str, value: str | int = None, other: str | None = None):
     return _m
 
 
-def on_key_gte(key: str, value: str | int = None, other: str | None = None):
+def on_key_gte(key: str, value: str | int | None = None, other: str | None = None):
     def _m(current: State, inp: str, statebag: Statebag):
         if value:
             try:
@@ -169,7 +172,7 @@ def on_key_gte(key: str, value: str | int = None, other: str | None = None):
     return _m
 
 
-def on_key_lte(key: str, value: str | int = None, other: str | None = None):
+def on_key_lte(key: str, value: str | int | None = None, other: str | None = None):
     def _m(current: State, inp: str, statebag: Statebag):
         if value:
             try:
