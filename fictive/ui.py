@@ -99,7 +99,8 @@ class GameUI(Screen):
 
     def on_mount(self) -> None:
         # properly init our view without ticking the game forward
-        self.update(Machine.StepResult(None, get_game_server().current(),None), get_game_server().bag())
+        self.update(Machine.StepResult(
+            None, get_game_server().current(), None), get_game_server().bag())
         self.focus_next(Input)
 
     def compose(self) -> ComposeResult:
@@ -114,10 +115,10 @@ class GameUI(Screen):
         yield Input(placeholder="Enter a command…")
         yield Footer()
 
-    def get_banner(self, level: "GameUI.Banners", state_bag:Statebag) -> str:
+    def get_banner(self, level: "GameUI.Banners", state_bag: Statebag) -> str:
         return statify(state_bag.get(str(level) + ".banner", ""), state_bag)
 
-    def display_error(self, err:str):
+    def display_error(self, err: str):
         err = self.query_exactly_one("#Error")
         err.classes = "active"
         err.update(res.additionalMessages, "ERROR")
@@ -125,14 +126,14 @@ class GameUI(Screen):
     def clear_error(self):
         self.query_exactly_one("#Error").classes = "inactive"
 
-    def update_state(self, tick:Machine.StepResult, state_bag:Statebag):
+    def update_state(self, tick: Machine.StepResult, state_bag: Statebag):
         state_banner = self.get_banner(GameUI.Banners.state, state_bag)
         # Update the main state box
         self.query_exactly_one("#State").update(
             statify(tick.state.description(), state_bag), state_banner
         )
 
-    def update_substate(self, tick:Machine.StepResult, state_bag:Statebag):
+    def update_substate(self, tick: Machine.StepResult, state_bag: Statebag):
         subs_banner = self.get_banner(GameUI.Banners.sub, state_bag)
         # update the substate box
         subs = self.query_exactly_one("#Substate")
@@ -143,7 +144,7 @@ class GameUI(Screen):
         else:
             subs.classes = "inactive"
 
-    def update_transients(self, tick:Machine.StepResult, state_bag:Statebag):
+    def update_transients(self, tick: Machine.StepResult, state_bag: Statebag):
         trans_banner = self.get_banner(GameUI.Banners.trans, state_bag)
         # update the transient state box
         trans = self.query_exactly_one("#Transient")
@@ -154,7 +155,7 @@ class GameUI(Screen):
         else:
             trans.classes = "inactive"
 
-    def update(self, tick:Machine.StepResult, state_bag:Statebag):
+    def update(self, tick: Machine.StepResult, state_bag: Statebag):
         """
         Update the UI based on the last game tick.
         """
@@ -164,7 +165,7 @@ class GameUI(Screen):
             self.display_error(tick.additionalMessages)
         else:
             self.clear_error()
-        
+
         self.update_state(tick, state_bag)
         self.update_substate(tick, state_bag)
         self.update_transients(tick, state_bag)
@@ -285,12 +286,19 @@ class FictiveUI(App):
 
     @on(GameList.GamePicked)
     def on_game_picked(self, picked: GameList.GamePicked):
-        loaded = load_game_yaml(Path(picked.path))
-        if not loaded:
-            # this game didn't have a manifest
-            # this shouldn't happen
-            return # TODO: handle error
-        game, state_bag, title = parse(loaded)
+        try:
+            loaded = load_game_yaml(Path(picked.path))
+        except:
+            self.notify("There was an error loading this game.",
+                        severity="error")
+            return
+        try:
+            game, state_bag, title = parse(loaded)
+        except Exception as ex:
+            self.notify("There was an error parsing this game.",
+                        severity="error")
+            raise ex
+            return
         get_game_server().start(game, state_bag)
         gameUI = GameUI()
         self.install_screen(gameUI, name="running_game")

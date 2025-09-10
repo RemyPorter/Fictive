@@ -138,6 +138,19 @@ def _flatten(l: Iterable) -> Iterable:
             yield i
 
 
+def _peel(obj: dict, key: str):
+    """Helper function to peel extraneous keys from our YAML entries"""
+    if key in obj:
+        return obj[key]
+    return obj
+
+
+def _handle_section(section: Iterable, handler: Callable) -> None:
+    """Little cleanup for how we parse our various sections of a machine."""
+    for s in section:
+        handler(s)
+
+
 def parse_machine(entry: dict):
     """
     Parse a machine entry. This creates all the states and transitions required for the machine
@@ -146,26 +159,13 @@ def parse_machine(entry: dict):
     desc = MachineDesc()
     state_entries = _flatten(entry["states"])
     transitions = _flatten(entry["transitions"])
-    if "global_transitions" in entry:
-        global_trans = entry["global_transitions"]
-    else:
-        global_trans = []
-    for s in state_entries:
-        if "state" in s:
-            parsed = parse_state(s["state"])
-        else:
-            parsed = parse_state(s)
-        desc.add_state(*parsed)
-    for t in transitions:
-        if "transition" in t:
-            parse_transition(t["transition"], desc)
-        else:
-            parse_transition(t, desc)
-    for t in global_trans:
-        if "transition" in t:
-            parse_transition(t["transition"], desc, True)
-        else:
-            parse_transition(t, desc, True)
+    global_trans = _flatten(entry.get("global_transitions", []))
+    _handle_section(state_entries,
+                    lambda s: desc.add_state(*parse_state(_peel(s, "state"))))
+    _handle_section(transitions,
+                    lambda t: parse_transition(_peel(t, "transition"), desc))
+    _handle_section(global_trans,
+                    lambda g: parse_transition(_peel(g, "transition"), desc, True))
     start_tag = entry["startTag"]
     if "endTag" in entry:
         end_tag = entry["endTag"]
