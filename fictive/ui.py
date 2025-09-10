@@ -6,6 +6,7 @@ from .states import Machine, Statebag, State
 from .print_helper import statify
 from .parser import *
 from .loader import load_game_yaml, scan_game_list
+from .game_server import get_game_server
 from textwrap import wrap
 from typing import Tuple, Iterable
 from pathlib import Path
@@ -25,15 +26,14 @@ class StatebagPeek(Widget):
     Helper to show our statebag, for debugging
     """
 
-    def __init__(self, state_bag: Statebag, *args, **kwargs):
-        self.state_bag = state_bag
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def compose(self):
-        yield Pretty(self.state_bag)
+        yield Pretty(get_game_server().bag())
 
     def update(self):
-        self.query_exactly_one("Pretty").update(self.state_bag)
+        self.query_exactly_one("Pretty").update(get_game_server().bag())
 
 
 class DisplayWrapper(Widget):
@@ -84,12 +84,9 @@ class GameUI(Screen):
         """
         self.post_message(GameUI.GameOver())
 
-    def __init__(self, game: Machine, state_bag: Statebag, *args, **kwargs):
-        self.game = game
-        self.state_bag = state_bag
+    def __init__(self, *args, **kwargs):
         self.ended = False
         self._peek = False
-        game.start(state_bag)
         super().__init__(*args, **kwargs)
 
     def show_statebag(self):
@@ -102,7 +99,7 @@ class GameUI(Screen):
 
     def on_mount(self) -> None:
         # properly init our view without ticking the game forward
-        self.update(Machine.StepResult(None, self.game.current(),None))
+        self.update(Machine.StepResult(None, get_game_server().current(),None), get_game_server().bag())
         self.focus_next(Input)
 
     def compose(self) -> ComposeResult:
@@ -113,12 +110,12 @@ class GameUI(Screen):
                 yield DisplayWrapper(id="Substate")
                 yield DisplayWrapper(id="Transient", classes="inactive")
                 yield DisplayWrapper(id="Error", classes="inactive")
-            yield StatebagPeek(self.state_bag, id="Peek", classes="inactive")
+            yield StatebagPeek(id="Peek", classes="inactive")
         yield Input(placeholder="Enter a command…")
         yield Footer()
 
-    def get_banner(self, level: "GameUI.Banners") -> str:
-        return statify(self.state_bag.get(str(level) + ".banner", ""), self.state_bag)
+    def get_banner(self, level: "GameUI.Banners", state_bag:Statebag) -> str:
+        return statify(state_bag.get(str(level) + ".banner", ""), state_bag)
 
     def display_error(self, err:str):
         err = self.query_exactly_one("#Error")
@@ -128,46 +125,38 @@ class GameUI(Screen):
     def clear_error(self):
         self.query_exactly_one("#Error").classes = "inactive"
 
-    def update_state(self, tick:Machine.StepResult):
-        state_banner = self.get_banner(GameUI.Banners.state)
+    def update_state(self, tick:Machine.StepResult, state_bag:Statebag):
+        state_banner = self.get_banner(GameUI.Banners.state, state_bag)
         # Update the main state box
         self.query_exactly_one("#State").update(
-            statify(tick.state.description(), self.state_bag), state_banner
+            statify(tick.state.description(), state_bag), state_banner
         )
 
-    def update_substate(self, tick:Machine.StepResult):
-        subs_banner = self.get_banner(GameUI.Banners.sub)
+    def update_substate(self, tick:Machine.StepResult, state_bag:Statebag):
+        subs_banner = self.get_banner(GameUI.Banners.sub, state_bag)
         # update the substate box
         subs = self.query_exactly_one("#Substate")
         if len(tick.state.substates()) > 0:
             subs.update(statify("\n\n".join(tick.state.substates()),
-                        self.state_bag), subs_banner)
+                        state_bag), subs_banner)
             subs.classes = "active"
         else:
             subs.classes = "inactive"
 
-    def update_transients(self, tick:Machine.StepResult):
-        trans_banner = self.get_banner(GameUI.Banners.trans)
+    def update_transients(self, tick:Machine.StepResult, state_bag:Statebag):
+        trans_banner = self.get_banner(GameUI.Banners.trans, state_bag)
         # update the transient state box
         trans = self.query_exactly_one("#Transient")
         if tick.transient:
             trans.classes = "active"
             trans.update(statify(tick.transient.description(),
-                         self.state_bag), trans_banner)
+                         state_bag), trans_banner)
         else:
             trans.classes = "inactive"
 
-    def update(self, tick:Machine.StepResult):
+    def update(self, tick:Machine.StepResult, state_bag:Statebag):
         """
-        Our core UI loop. Checks what we got out of the state machine, and
-        updates several UI elements.
-
-        This includes:
-        * The banner on our main state widget
-        * The main state widget itself
-        * The banner on our substate widget (if active)
-        * The substate widget itself
-        * Ditto, but for the transient box
+        Update the UI based on the last game tick.
         """
         if tick.action == Machine.Result.End:
             self.ended = True
@@ -176,9 +165,9 @@ class GameUI(Screen):
         else:
             self.clear_error()
         
-        self.update_state(tick)
-        self.update_substate(tick)
-        self.update_transients(tick)
+        self.update_state(tick, state_bag)
+        self.update_substate(tick, state_bag)
+        self.update_transients(tick, state_bag)
         # update our debugging view
         self.query_exactly_one("#Peek").update()
 
@@ -192,8 +181,8 @@ class GameUI(Screen):
             self.quit_game()
             return
         inp = event.value
-        res = self.game.step(inp, self.state_bag)
-        self.update(res)
+        res, state_bag = get_game_server().tick(inp)
+        self.update(res, state_bag)
         self.query_one(Input).value = ""
 
 
@@ -272,9 +261,6 @@ class GamePicker(Screen):
 
 
 class FictiveUI(App):
-    game: Machine
-    state_bag: Statebag
-
     TITLE = "Fictive Game Player"
 
     CSS_PATH = "fictive.tcss"
@@ -302,9 +288,11 @@ class FictiveUI(App):
         loaded = load_game_yaml(Path(picked.path))
         if not loaded:
             # this game didn't have a manifest
+            # this shouldn't happen
             return # TODO: handle error
         game, state_bag, title = parse(loaded)
-        gameUI = GameUI(game, state_bag)
+        get_game_server().start(game, state_bag)
+        gameUI = GameUI()
         self.install_screen(gameUI, name="running_game")
         self.push_screen("running_game")
         self.title = title

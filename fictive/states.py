@@ -62,14 +62,12 @@ class State:
     def on_enter(self, s:"State", inp:str, bag:Statebag):
         if self._sub:
             self._sub.current().on_enter(s, inp, bag)
-        if self._on_enter:
-            return self._on_enter(s, inp, bag)
+        return self._on_enter(s, inp, bag)
         
     def on_exit(self, s:"State", inp:str, bag:Statebag):
         if self._sub:
             self._sub.current().on_exit(s, inp, bag)
-        if self._on_exit:
-            return self._on_exit(s, inp, bag)
+        return self._on_exit(s, inp, bag)
 
 
 
