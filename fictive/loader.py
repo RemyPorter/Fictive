@@ -6,21 +6,30 @@ from dataclasses import dataclass
 
 yaml=YAML(typ='safe')   # default
 
-def merge_game_yaml(root: Path, manifest: Path) -> Tuple[dict, str]:
+def merge_game_yaml(root: Path, mfest:dict) -> str:
     """
     By reading the manifest, load all the files in that manifest and
     merge them into a single string so we can parse it in YAML.
     """
-    if manifest.exists():
-        with manifest.open() as f:
-            mfest = yaml.load(f)
-            files = [root / entry for entry in mfest["files"]]
-        with ExitStack() as stack:
-            read_from = [stack.enter_context(
-                entry.open()).read() for entry in files]
-        merged = "\n".join(read_from)
-        return mfest,merged
-    return None
+
+    files = [root / entry for entry in mfest["files"]]
+    with ExitStack() as stack:
+        read_from = [stack.enter_context(
+            entry.open()).read() for entry in files]
+    merged = "\n".join(read_from)
+    return merged
+
+def load_manifest(manifest:Path)->dict:
+    if not manifest.exists():
+        raise Exception("Invalid Game Directory")
+    with manifest.open() as f:
+        mfest = yaml.load(f)
+        return mfest
+
+def load_test(test_path:Path|str)->dict:
+    p = Path(test_path).resolve()
+    with p.open() as f:
+        return yaml.load(f)
 
 def load_game_yaml(gameInstance: Path | str):
     """
@@ -28,17 +37,11 @@ def load_game_yaml(gameInstance: Path | str):
     entry in the manifest.
     """
     root = Path(gameInstance).resolve()
-    if not root.is_dir():  # the game is in a single file
-        with root.open() as f:
-            return yaml.load(f)
-    # otherwise, the game is in a directory, look for a manifest
     manifest = root / "manifest.yaml"
-    mfest, merged = merge_game_yaml(root, manifest)
-    if merged:
-        loaded = yaml.load(merged)
-        return loaded + [{key: value} for key, value in mfest.items()]
-    return None
-
+    mfest = load_manifest(manifest)
+    merged = merge_game_yaml(root, mfest)
+    loaded = yaml.load(merged)
+    return loaded + [{key: value} for key, value in mfest.items()]
 
 @dataclass
 class GameListEntry:
@@ -63,14 +66,15 @@ def load_manifest_yaml(gameInstance: Path | str)->GameListEntry:
             loaded.get("slug", "Slug for a game"), 
             loaded.get("author", "Anonymous"),
             root)
-    return None
+    else:
+        raise Exception("Not a valid game directory")
 
 def scan_game_list(path:Path|str)->Iterator[GameListEntry]:
     """
     Scan a directory for game metadata.
     """
-    p = Path(path).resolve()
-    for p in path.iterdir():
+    pth = Path(path).resolve()
+    for p in pth.iterdir():
         if p.is_dir() and (p / "manifest.yaml").exists():
             mfest = load_manifest_yaml(p)
             if mfest:

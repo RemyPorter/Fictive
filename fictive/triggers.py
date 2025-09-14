@@ -9,7 +9,6 @@ from .print_helper import statify
 
 Matcher = Callable[[State, str, Statebag], bool]
 
-
 def set_key(key: str, value: str | int):
     """
     Set a key in our statebag. Mostly used in on_enter or on_exit events.
@@ -184,6 +183,10 @@ def on_key_lte(key: str, value: str | int | None = None, other: str | None = Non
             return _compare_keys(key, other, statebag) <= 0
     return _m
 
+def on_tag(tag: str):
+    def _m(current: State, inp: str, statebag: Statebag):
+        return current.tag == tag
+    return _m
 
 def always():
     """

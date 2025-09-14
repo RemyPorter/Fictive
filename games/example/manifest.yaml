@@ -5,3 +5,5 @@ files:
   - switch.yaml
   - core.yaml
   - game.yaml
+tests:
+  - test.yaml

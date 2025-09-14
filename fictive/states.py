@@ -26,9 +26,10 @@ class State:
     theoretically nest substate machines as much as you like. Practically, that would be
     very difficult to write effectively.
     """
-    def __init__(self, description: str, on_enter: OptionalStateCallback = None,
+    def __init__(self, tag: str, description: str, on_enter: OptionalStateCallback = None,
                  on_exit: OptionalStateCallback = None, sub_machine: Mach = None):
         self._descr = description
+        self.tag = tag
         if on_enter:
             self._on_enter:StateCallback = on_enter
         else:
@@ -91,18 +92,18 @@ class MachineDesc:
         * a collection of global transitions, which are always active
     """
     def __init__(self):
-        self._states: Dict[str, State] = {"": State("")}
+        self._states: Dict[str, State] = {"": State("", "")}
         self._rstates: Dict[State, str] = {}
         self._transitions: Dict[str, List[Transition]] = {}
         self._global_transitions: List[Transition] = []
 
-    def add_state(self, tag: str, s: State):
+    def add_state(self, s: State):
         """
         Add a state to this machine
         """
-        self._states[tag] = s
-        self._rstates[s] = tag
-        self._transitions[tag] = []
+        self._states[s.tag] = s
+        self._rstates[s] = s.tag
+        self._transitions[s.tag] = []
         return self
 
     def link(self, tagOrigin: str, tagDest: str, cbk: TransitionCallback):
@@ -136,10 +137,10 @@ class Machine:
     class Result(Enum):
         NoChange = 0
         Transitioned = 1
-        Rejected = 2
         End = 3
         Transient = 4
         Error = 5
+        Rejected = 6
 
     class RejectWithMessage(Exception):
         def __init__(self, msg: str):
@@ -164,11 +165,15 @@ class Machine:
         self._start = mach[startTag]
         self._end = mach[endTag]
         self._current = startTag
+        self._startTag = startTag
 
     def current(self) -> State:
         return self._internal[self._current]
 
     def start(self, state_bag: Statebag):
+        self._current = self._startTag
+        if self.current().sub():
+            self.current().sub().start(state_bag)
         self.current().on_enter(self.current(), "", state_bag)
 
     def step(self, inp: str, state_bag: Statebag) -> "Machine.StepResult":
