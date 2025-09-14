@@ -1,10 +1,12 @@
 from .triggers import *
 from .parser import *
 from .states import Machine
+from .loader import load_game_yaml
 from .print_helper import statify, scan_for_template
 from .game_server import get_game_server, GameServer
+from .test_parser import *
+from .test_runner import *
 import unittest
-
 
 class TriggerTests(unittest.TestCase):
     def test_set_key(self):
@@ -252,3 +254,68 @@ class GameServerTests(unittest.TestCase):
         g0 = get_game_server("g0")
         g1 = get_game_server("g1")
         self.assertFalse(g0 is g1)
+
+class GameTestParserTests(unittest.TestCase):
+    def setUp(self):
+        md = MachineDesc()
+        md.add_state(State("entry", "Test State"))
+        md.add_state(State("next", "Testing Next", on_enter=set_key("foo", 5)))
+        md.link("entry", "next", on_match("transition"))
+        mach = Machine(md, "entry")
+        gs = get_game_server("GameTestParserTests")
+        self.bag:Statebag = {"test": "value"}
+        gs.start(mach, self.bag)
+        self.mach = mach
+
+    def test_simple_assertion(self):
+        d = {"assert": {"tag": "entry"}}
+        parsed = parse_test_line(d)
+        self.assertTrue(isinstance(parsed, Assertion))
+        self.assertTrue(parsed("GameTestParserTests"))
+
+    def test_chain_assertion(self):
+        d = {"assert": 
+            [
+                {"tag": "entry"},
+                {"eq": {"key": "test", "value":"value"}}
+            ]}
+
+        parsed = parse_test_line(d)
+        self.assertTrue(parsed("GameTestParserTests"))
+        
+    def test_failed_assertion(self):
+        d = {"assert": {"tag": "nope"}}
+        parsed = parse_test_line(d)
+        self.assertFalse(parsed("GameTestParserTests"))
+
+    def test_steps(self):
+        test_suite = {"steps": [
+            {"assert": {"tag": "entry"}},
+            {"input": "wrong input"},
+            {"assert": {"tag": "entry"}},
+            {"input": "transition"},
+            {"assert": {"tag": "next"}}
+        ]}
+        parsed = parse_test("simple_test", test_suite)
+        results = parsed.run(self.mach, self.bag)
+        self.assertTrue(all(results))
+
+    def test_isolation(self):
+        test_suite = {"steps": [{"input": "transition"}]}
+        parsed = parse_test("simple_test", test_suite)
+        results = parsed.run(self.mach, self.bag)
+        self.assertTrue("foo" not in self.bag)
+
+
+class TestTests(unittest.TestCase):
+    def test_printing(self):
+        t = {"test": {"steps": [0, 1, 2, 3]}}
+        r = {"test": [True, True, False, True]}
+        res = build_test_results(t, r)
+        self.assertEqual(res,
+        "Test: test\n---- Failed(2): 2")
+
+        r = {"test": [True, True, True, True]}
+        res = build_test_results(t, r)
+        self.assertEqual(res,
+        "Test: test\n---- All Tests Pass")

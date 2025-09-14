@@ -19,6 +19,7 @@ TRIGGER_MAP: Dict[str, Callable] = {
     "on_match": on_match,
     "match": on_match,
     "on_key": on_key,
+    "tag": on_tag,
     "eq": on_key,
     "on_all": on_all,
     "all": on_all,
@@ -106,25 +107,7 @@ def parse_state(state_desc: dict):
     if "sub_machine" in state_desc:
         sub_machine = parse_machine(state_desc["sub_machine"])
     # todo, add support for linking submachines
-    return tag, State(descr, on_enter, on_exit, sub_machine)
-
-
-def parse_transition(entry: dict, machine: MachineDesc, is_global=False):
-    """
-    Parse a transition and add it to a machine description. `is_global` creates a global
-    transition which can apply anywhere.
-    """
-    on_handler = entry["condition"]
-    if isinstance(on_handler, list):
-        fs = [parse_function(f) for f in on_handler]
-        on_cbk = on_all(*fs)
-    else:
-        on_cbk = parse_function(on_handler)
-    if not is_global:
-        machine.link(entry["from"], entry["to"], on_cbk)
-    else:
-        machine.global_link(entry["to"], on_cbk)
-
+    return State(tag, descr, on_enter, on_exit, sub_machine)
 
 def _flatten(l: Iterable) -> Iterable:
     """
@@ -144,6 +127,28 @@ def _peel(obj: dict, key: str):
         return obj[key]
     return obj
 
+def parse_condition(entry: dict):
+    on_handler = _peel(entry, "condition")
+    if isinstance(on_handler, list):
+        fs = [parse_function(f) for f in on_handler]
+        on_cbk = on_all(*fs)
+    else:
+        on_cbk = parse_function(on_handler)
+    return on_cbk
+
+
+def parse_transition(entry: dict, machine: MachineDesc, is_global=False):
+    """
+    Parse a transition and add it to a machine description. `is_global` creates a global
+    transition which can apply anywhere.
+    """
+    on_handler = entry["condition"]
+    on_cbk = parse_condition(entry)
+    if not is_global:
+        machine.link(entry["from"], entry["to"], on_cbk)
+    else:
+        machine.global_link(entry["to"], on_cbk)
+
 
 def _handle_section(section: Iterable, handler: Callable) -> None:
     """Little cleanup for how we parse our various sections of a machine."""
@@ -161,7 +166,7 @@ def parse_machine(entry: dict):
     transitions = _flatten(entry["transitions"])
     global_trans = _flatten(entry.get("global_transitions", []))
     _handle_section(state_entries,
-                    lambda s: desc.add_state(*parse_state(_peel(s, "state"))))
+                    lambda s: desc.add_state(parse_state(_peel(s, "state"))))
     _handle_section(transitions,
                     lambda t: parse_transition(_peel(t, "transition"), desc))
     _handle_section(global_trans,

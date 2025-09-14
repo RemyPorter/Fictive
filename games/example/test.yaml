@@ -1,0 +1,26 @@
+good_path:
+    steps:
+        - assert:
+            tag: entry
+        - input: go
+        - assert:
+            tag: middle_off
+        - input: back
+        - assert:
+            tag: entry
+        - input: switch
+        - input: go
+        - assert:
+            tag: middle_on
+        - input: next
+        - assert:
+            tag: exit
+failed_test:
+    steps:
+        - assert:
+            tag: switched
+        - assert:
+            tag: entry
+        - input: next
+        - assert:
+            tag: middle_on
