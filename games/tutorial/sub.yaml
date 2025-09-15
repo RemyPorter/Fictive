@@ -1,4 +1,4 @@
-- sub_sub: &sub_sub
+sub_sub: &sub_sub
     states:
         - state:
             tag: switch_off
@@ -26,7 +26,7 @@
             condition:
                 match: (turn|switch|flip).*
     startTag: switch_off
-- sub_states: &sub_states
+sub_states: &sub_states
     - state:
         tag: start_sub
         description: |
@@ -74,7 +74,7 @@
             Now, whenever a player is on the `state_with_substates` state, the `sub_machine` is active. It behaves like any other state machine; it just only is active during the `state_with_substates` state.
 
             Press enter to return to the overview.
-- sub_trans: &sub_trans
+sub_trans: &sub_trans
     - transition:
         from: overview
         to: start_sub

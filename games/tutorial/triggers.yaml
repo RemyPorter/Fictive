@@ -1,4 +1,4 @@
-- trigger_states: &trigger_states
+trigger_states: &trigger_states
     - state:
         tag: triggers_and_statebag
         description: |
@@ -56,9 +56,9 @@
             You can set default values for your statebag in your YAML files, by simply adding a `state_bag` key:
 
             ```yaml
-            - execute:
+            execute:
                 # machine definition
-            - state_bag:
+            state_bag:
                 someKey: someValue
                 otherKey: 5
             ```
@@ -142,7 +142,7 @@
         on_enter:
             banner: Triggers and the State Bag
 
-- trigger_transitions: &trigger_transitions
+trigger_transitions: &trigger_transitions
     - transition:
         from: overview
         to: triggers_and_statebag

@@ -26,10 +26,7 @@ if args.test_game:
     loaded = load_game_yaml(gut)
     machine,statebag,title = parse(loaded)
     test_defs = []
-    for l in loaded[::-1]: # in parsing, we favor putting the tests at the end
-        if "tests" in l:
-            for t in l["tests"]:
-                test_main(loaded, gut)
+    test_main(loaded, gut)
                 
     exit(0)
 
