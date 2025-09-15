@@ -1,4 +1,4 @@
-- .organizing_states: &organizing_states
+.organizing_states: &organizing_states
     - state:
         tag: intro_organizing
         description: |
@@ -13,14 +13,14 @@
             YAML lets you organize sections of your file as references. The easiest way is to look at an example. We could define states like so:
 
             ```yaml
-            - my_states: &my_states #&my_states is the anchor
+            my_states: &my_states # &my_states is the anchor
                 - state:
                     tag: start
                     description: Hello World
                 - state:
                     tag: end
                     description: Goodbye World
-            - my_trans: &my_trans
+            my_trans: &my_trans
                 - transition:
                     from: start
                     to: end
@@ -34,13 +34,15 @@
             Now, when we define our machine, we can do this:
 
             ```yaml
-            - execute:
+            execute:
                 startTag: start
                 states:
-                    - *my_game # this reference links back to the anchor
+                    - *my_states # this reference links back to the anchor
+                transitions:
+                    - *my_trans
             ```
             
-            `*my_game` inserts everything under the `&my_game` anchor into our machine. We can use this for any section or content in our game.
+            `*my_states` inserts everything under the `&my_states` anchor into our machine. We can use this for any section or content in our game.
 
             Type `files` to check out how to use files to organize your game, or press enter to go back.
     - state:
@@ -69,7 +71,7 @@
             This rule *does not* apply to the `tag` on your states; `tag`s can be used whenever, and simply need to be defined *somewhere* for your game to work. `references` are specifically a YAML feature, and that's why order matters.
 
             Type `references` for more on how these can be used, or press enter to continue.
-- .organizing_trans: &organizing_trans
+.organizing_trans: &organizing_trans
     - transition:
         from: overview
         to: intro_organizing

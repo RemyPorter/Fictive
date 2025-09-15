@@ -1,4 +1,4 @@
-- machine: &main
+machine: &main
     states:
         - *intro_states
         - *starting_states
@@ -22,8 +22,8 @@
                 match: (exit|quit)
     startTag: introduction
     endTag: exit_game
-- execute: *main
-- state_bag:
+execute: *main
+state_bag:
     game_name: ""
     setup_done: False
     example_increment: 10

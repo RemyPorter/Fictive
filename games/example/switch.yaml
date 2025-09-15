@@ -1,70 +1,70 @@
-- power_check: &power_check
-    matcher: (is power on|power on|switch status|power|check power)
-- state: &switch_is_on
-    tag: switch_is_on
-    description: > 
-        You remember turning the switch on.
-        You've flipped it {switch_count} times.
-    on_enter: revert
-- state: &switch_is_off
-    tag: switch_is_off
-    description: >
-        You think the switch is off.
-        You've flipped it {switch_count} times.
-    on_enter: revert
-- transition: &to_check_on
-    from: ""
-    to: switch_is_on
-    condition:
-        - on_match: *power_check
-        - on_key:
-            key: switch
-            value: on
-- transition: &to_check_off
-    from: ""
-    to: switch_is_off
-    condition:
-        - on_match: *power_check
-        - on_key:
-            key: switch
-            value: off
-- state: &switch_off
-    tag: switch_off
-    description: >
-        There is a switch here. It is in the off position.
-    on_enter:
-        - subbanner: A Mysterious Switch
-        - set_key:
-            key: switch
-            value: off
-        - inc:
-            key: switch_count
-- state: &switch_on
-    tag: switch_on
-    description: >
-        The switch is on. You hear a faint humming sound.
-    on_enter:
-        - set_key:
-            key: switch
-            value: on
-        - inc:
-            key: switch_count
-- state: &switch_broken
-    tag: switch_broken
-    description: >
-        You've broken the switch. It will never work again. You may be trapped here.
-    on_enter:
-        - set_key:
-            key: switch
-            value: off
-- switch_matcher: &switch_matcher
-    matcher: switch|toggle|flip|turn on|use switch
-- machine: &switched
+switches:
+    power_check: &power_check
+        matcher: (is power on|power on|switch status|power|check power)
+    power_states: &power_states
+        - state:
+            tag: switch_is_on
+            description: > 
+                You remember turning the switch on.
+                You've flipped it {switch_count} times.
+            on_enter: revert
+        - state:
+            tag: switch_is_off
+            description: >
+                You think the switch is off.
+                You've flipped it {switch_count} times.
+            on_enter: revert
+    power_trans: &power_trans
+        - transition:
+            to: switch_is_on
+            condition:
+                - on_match: *power_check
+                - on_key:
+                    key: switch
+                    value: on
+        - transition:
+            to: switch_is_off
+            condition:
+                - on_match: *power_check
+                - on_key:
+                    key: switch
+                    value: off
+    switch_states: &switch_states
+        - state:
+            tag: switch_off
+            description: >
+                There is a switch here. It is in the off position.
+            on_enter:
+                - subbanner: A Mysterious Switch
+                - set_key:
+                    key: switch
+                    value: off
+                - inc:
+                    key: switch_count
+        - state:
+            tag: switch_on
+            description: >
+                The switch is on. You hear a faint humming sound.
+            on_enter:
+                - set_key:
+                    key: switch
+                    value: on
+                - inc:
+                    key: switch_count
+        - state:
+            tag: switch_broken
+            description: >
+                You've broken the switch. It will never work again. You may be trapped here.
+            on_enter:
+                - set_key:
+                    key: switch
+                    value: off
+    switch_matcher: &switch_matcher
+        matcher: switch|toggle|flip|turn on|use switch
+switch_machine: &switched
     startTag: switch_off
     states:
-        - *switch_broken
-        - *switch_off
-        - *switch_on
+        - *switch_states
     transitions:
         - transition:
             from: switch_off
@@ -86,8 +86,7 @@
             from: switch_off
             to: switch_on
             condition:
-                on_match: *switch_matcher
-                    
+                on_match: *switch_matcher     
         - transition:
             from: switch_on
             to: switch_off
