@@ -1,4 +1,4 @@
-- advanced_states: &advanced_states
+advanced_states: &advanced_states
     - state:
         tag: start_advanced_transitions
         description: |
@@ -79,7 +79,7 @@
             With these, you can then use comparisons during your transitions to enable or disable different transitions, giving your game memory and flexibility.
 
             Type `overview` to go back to the overview, or `submachine` to investigate how to make our states more robust and complex. 
-- advanced_trans: &advanced_trans
+advanced_trans: &advanced_trans
     - transition:
         from: overview
         to: start_advanced_transitions

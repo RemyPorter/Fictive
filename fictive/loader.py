@@ -3,6 +3,7 @@ from pathlib import Path
 from contextlib import ExitStack
 from typing import List, Iterator, Tuple
 from dataclasses import dataclass
+from sys import stderr
 
 yaml=YAML(typ='safe')   # default
 
@@ -40,8 +41,13 @@ def load_game_yaml(gameInstance: Path | str):
     manifest = root / "manifest.yaml"
     mfest = load_manifest(manifest)
     merged = merge_game_yaml(root, mfest)
-    loaded = yaml.load(merged)
-    return loaded + [{key: value} for key, value in mfest.items()]
+    try:
+        loaded = yaml.load(merged)
+    except Exception as ex:
+        print("Failed to load game, YAML error: ", file=stderr)
+        bad_line = merged.split('\n')[ex.problem_mark.line]
+        print(f"\t{ex.problem}: {bad_line}", file=stderr)
+    return loaded | mfest
 
 @dataclass
 class GameListEntry:

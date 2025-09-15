@@ -1,4 +1,4 @@
-- transition_states: &transition_states
+transition_states: &transition_states
     - state:
         tag: intro_transitions
         description: |
@@ -6,10 +6,10 @@
   
             ```yaml
             - transition:
-            from: lastState
-            to: nextState
-            condition:
-            match: test
+                from: lastState
+                to: nextState
+                condition:
+                    match: test
             ```
       
             That transition declares that, when the player is in the `lastState` state, if they type `test`, the game will move to the `nextState`.
@@ -55,7 +55,7 @@
             When the player gives your game input, Fictive will first check to see if any transitions attached to this state will fire, in order of definition. If none of those states fire, then Fictive will check the global transitions.
 
             Global transitions can be helpful in a variety of ways, and are quite useful when used in conjunction with the revert `trigger`. Type `trigger` to learn about that, or hit enter to go back to the overview.    
-- transition_transitions: &transition_transitions
+transition_transitions: &transition_transitions
     - transition:
         from: overview
         to: intro_transitions

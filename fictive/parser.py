@@ -179,7 +179,7 @@ def parse_machine(entry: dict):
     return Machine(desc, start_tag, end_tag)
 
 
-def parse(machine_desc: list):
+def parse(entry: list):
     """
     Parse a yaml file. We expect a YAML array of dicts. The two sub-dicts we care about are 
     "exectue"- the machine definition we want to run, and "state_bag", the initial dictionary for
@@ -187,13 +187,12 @@ def parse(machine_desc: list):
     """
     state_bag = {}
     title = "A Fictive Game"
-    for entry in machine_desc:
-        if "execute" in entry:
-            main_entry = entry["execute"]
-            machine = parse_machine(main_entry)
-        if "state_bag" in entry:
-            state_bag = entry["state_bag"]
-        if "title" in entry:
-            title = entry["title"]
+    if "execute" in entry:
+        main_entry = entry["execute"]
+        machine = parse_machine(main_entry)
+    if "state_bag" in entry:
+        state_bag = entry["state_bag"]
+    if "title" in entry:
+        title = entry["title"]
 
     return machine, state_bag, title
